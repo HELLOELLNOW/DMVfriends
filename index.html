@@ -595,29 +595,91 @@
 
   // ── INIT ──────────────────────────────────────
   async function init() {
+    // Handle email confirmation: Supabase puts tokens in the URL hash
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      // Show a "confirming..." state while Supabase processes the token
+      showConfirming();
+      // Supabase JS v2 automatically exchanges the hash tokens
+      // onAuthStateChange below will fire once it's done
+    }
+
+    // Also handle ?error= in URL (e.g. expired link)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error')) {
+      showLanding();
+      openModal('login');
+      setTimeout(() => {
+        const errEl = document.getElementById('login-error');
+        showErr(errEl, 'Confirmation link expired. Please sign in or request a new link.');
+      }, 200);
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
       currentUser = session.user;
       await loadProfile();
       showApp();
+    } else if (!hash.includes('access_token')) {
+      showLanding();
     }
-    db.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user && !currentUser) {
+
+    db.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
         currentUser = session.user;
-        await loadProfile();
+        // Clean the ugly hash from the URL
+        if (window.location.hash) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        await ensureProfile(session.user);
         showApp();
-      } else if (!session) {
+        toast('Welcome to DMV Friends! 🎉');
+      } else if (event === 'SIGNED_OUT') {
         currentUser = null;
+        currentProfile = null;
         showLanding();
       }
     });
+  }
+
+  function showConfirming() {
+    // Show a simple "confirming your account..." overlay
+    document.getElementById('page-landing').classList.add('active');
+    const inner = document.querySelector('.landing-inner');
+    if (inner) {
+      inner.innerHTML = `
+        <div class="logo-mark">D</div>
+        <div style="margin-bottom:1rem;"><div class="spinner" style="width:32px;height:32px;border-width:3px;"></div></div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.5rem;">Confirming your account…</h2>
+        <p style="color:var(--muted);font-size:0.9rem;">Just a moment, you'll be inside shortly.</p>
+      `;
+    }
+  }
+
+  // Ensure a profile row exists (handles case where signup callback didn't fire)
+  async function ensureProfile(user) {
+    const { data } = await db.from('profiles').select('id').eq('id', user.id).single();
+    if (!data) {
+      const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Member';
+      await db.from('profiles').insert({
+        id: user.id,
+        display_name: name,
+        email: user.email,
+        location: 'DMV',
+        created_at: new Date().toISOString()
+      });
+    }
+    await loadProfile();
   }
 
   async function loadProfile() {
     const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
     currentProfile = data;
     const initials = (currentProfile?.display_name || currentUser.email || '?')[0].toUpperCase();
-    document.getElementById('user-avatar').textContent = initials;
+    const avatarEl = document.getElementById('user-avatar'); if (avatarEl) avatarEl.textContent = initials;
   }
 
   // ── PAGE ROUTING ──────────────────────────────
