@@ -2,6 +2,19 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
+<meta name="theme-color" content="#0f1117" id="theme-meta"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DMV Friends"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<meta name="description" content="DMV Friends — 21+ private community for DC, Maryland and Virginia."/>
+<meta property="og:title" content="DMV Friends"/>
+<meta property="og:description" content="21+ private community for DC · MD · VA"/>
+<meta property="og:image" content="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=1200&q=80&fit=crop"/>
+<meta property="og:url" content="https://dmvfriends.com"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>DMV Friends — 21+ Private Community</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -256,7 +269,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <h1 class="hero-title">Your <em>DC · MD · VA</em><br/>circle. Members only.</h1>
       <p class="hero-sub">One private space for real connections, local events, and the people who make this region home.</p>
       <div class="cta-row">
-        <button class="btn btn-primary" onclick="openModal('signup')">Request Access →</button>
+        <button class="btn btn-primary" onclick="openModal('signup')">Join Free →</button>
         <button class="btn btn-secondary" onclick="openModal('login')">Sign In</button>
       </div>
     </div>
@@ -281,14 +294,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="modal-x" onclick="closeModal()">✕</button>
     <!-- SIGNUP -->
     <div id="f-signup">
-      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Join DMV Friends</span></div>
-      <div class="field"><label>Invite Code</label><input id="s-code" type="text" placeholder="DMV2026" autocomplete="off"/></div>
+      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Create your account</span></div>
+      
       <div class="field"><label>Display Name</label><input id="s-name" type="text" placeholder="What should we call you?"/></div>
       <div class="field"><label>Location (DC / MD / VA)</label><input id="s-loc" type="text" placeholder="e.g. Adams Morgan, DC"/></div>
       <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="you@example.com"/></div>
       <div class="field"><label>Password</label><input id="s-pass" type="password" placeholder="Min 8 characters"/></div>
       <div class="age-check"><input type="checkbox" id="s-age"/><label for="s-age">I confirm I am 21 years of age or older</label></div>
-      <button class="btn btn-primary" style="width:100%;" id="s-btn" onclick="doSignup()">Create Account</button>
+      <button class="btn btn-primary" style="width:100%;" id="s-btn" onclick="doSignup()">Join DMV Friends</button>
       <div class="form-err" id="s-err"></div><div class="form-ok" id="s-ok"></div>
       <div class="auth-switch">Already a member? <a onclick="switchForm('login')">Sign in</a></div>
     </div>
@@ -299,7 +312,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="Your password"/></div>
       <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="l-btn" onclick="doLogin()">Sign In</button>
       <div class="form-err" id="l-err"></div>
-      <div class="auth-switch">Need access? <a onclick="switchForm('signup')">Request invite</a></div>
+      <div class="auth-switch">New here? <a onclick="switchForm('signup')">Create account</a></div>
     </div>
   </div>
 </div>
@@ -340,9 +353,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div style="flex:1;"></div>
       <div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
-        <div style="font-size:0.75rem;font-weight:600;margin-bottom:4px;">Invite a friend</div>
-        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:8px;">Share the code below</div>
-        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:0.45rem 0.75rem;font-size:0.8rem;font-family:monospace;cursor:pointer;letter-spacing:0.05em;" onclick="copyCode()">DMV2026 &nbsp;📋</div>
       </div>
     </aside>
 
@@ -449,7 +459,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
-const INVITE_CODE  = 'DMV2026';
 // ↓↓ PUT YOUR EMAIL HERE to get admin access ↓↓
 const ADMIN_EMAILS = ['ejohnysingh@gmail.com'];
 
@@ -541,7 +550,6 @@ document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target
 
 // AUTH
 async function doSignup(){
-  const code=document.getElementById('s-code').value.trim().toUpperCase();
   const name=document.getElementById('s-name').value.trim();
   const loc=document.getElementById('s-loc').value.trim();
   const email=document.getElementById('s-email').value.trim();
@@ -549,7 +557,6 @@ async function doSignup(){
   const age=document.getElementById('s-age').checked;
   const btn=document.getElementById('s-btn');
   clearMsg('s-err');clearMsg('s-ok');
-  if(code!==INVITE_CODE)return showErr('s-err','Invalid invite code.');
   if(!name)return showErr('s-err','Display name required.');
   if(!email||!pass)return showErr('s-err','Email and password required.');
   if(pass.length<8)return showErr('s-err','Password must be 8+ characters.');
@@ -779,7 +786,58 @@ function showOk(id,msg){const el=document.getElementById(id);el.textContent=msg;
 function clearMsg(id){const el=document.getElementById(id);el.className='form-err';el.textContent='';}
 function loading(){return'<div class="loading"><div class="spinner"></div></div>';}
 function empty(icon,text){return`<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;}
-function copyCode(){navigator.clipboard.writeText('DMV2026');toast('Invite code copied! 📋');}
+
+// ── SERVICE WORKER
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("/sw.js")
+      .then(r=>console.log("[DMV] SW registered",r.scope))
+      .catch(e=>console.log("[DMV] SW failed",e));
+  });
+}
+
+// ── PWA INSTALL BANNER
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  showInstallBanner();
+});
+window.addEventListener("appinstalled",()=>{
+  hideInstallBanner();
+  toast("DMV Friends installed! Find it on your home screen 🎉");
+});
+
+function showInstallBanner(){
+  if(document.getElementById("install-banner"))return;
+  const banner=document.createElement("div");
+  banner.id="install-banner";
+  banner.style.cssText="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0.875rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.2);white-space:nowrap;animation:slideUp 0.4s ease both;";
+  banner.innerHTML=`<div style="font-size:1.5rem">📱</div><div><div style="font-weight:600;font-size:0.875rem;">Add to Home Screen</div><div style="font-size:0.75rem;color:var(--text2);">Install DMV Friends as an app</div></div><button onclick="doInstall()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:500;cursor:pointer;font-family:var(--font);">Install</button><button onclick="hideInstallBanner()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:0.25rem;">✕</button>`;
+  document.body.appendChild(banner);
+}
+
+function hideInstallBanner(){
+  const b=document.getElementById("install-banner");
+  if(b)b.remove();
+}
+
+function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(c=>{
+    if(c.outcome==="accepted")toast("Installing DMV Friends...");
+    deferredPrompt=null;
+    hideInstallBanner();
+  });
+}
+
+// Sync theme-color meta with dark/light toggle
+const origToggle=toggleTheme;
+window.toggleTheme=function(){
+  origToggle();
+  document.getElementById("theme-meta").content=theme==="dark"?"#0f1117":"#f5f7ff";
+};
 
 init();
 </script>
