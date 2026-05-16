@@ -1,965 +1,781 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DMV Friends — 21+ Private Community</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DMV Friends — 21+ Private Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-light:rgba(37,99,235,0.1);
+  --gold:#f59e0b;--gold-light:rgba(245,158,11,0.12);
+  --danger:#ef4444;--success:#10b981;
+  --radius:14px;--radius-sm:8px;--radius-full:9999px;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.14);
+  --font:'Sora',sans-serif;--font-serif:'Fraunces',serif;--t:0.2s ease;
+}
+[data-theme="dark"]{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;
+  --surface:#1a2033;--surface2:#222a3e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f4ff;--text2:#8892b0;--text3:#3d4a68;
+}
+[data-theme="light"]{
+  --bg:#f5f7ff;--bg2:#ffffff;--bg3:#eef1ff;
+  --surface:#ffffff;--surface2:#f0f4ff;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --text:#0f1117;--text2:#4a5568;--text3:#a0aec0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5;transition:background var(--t),color var(--t);}
 
-  <style>
-    :root {
-      --bg: #0d0d0f;
-      --surface: #141417;
-      --surface2: #1c1c21;
-      --border: rgba(255,255,255,0.07);
-      --gold: #c9a84c;
-      --gold-light: #e8c97a;
-      --gold-dim: rgba(201,168,76,0.15);
-      --text: #f0ece4;
-      --muted: #7a7672;
-      --danger: #e05c5c;
-      --radius: 12px;
-    }
+/* PAGES */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── LANDING ── */
+#page-landing{position:relative;overflow:hidden;}
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:4rem 3.5rem 4rem 4rem;position:relative;z-index:2;background:var(--bg);}
+.hero-logo{display:flex;align-items:center;gap:10px;margin-bottom:3.5rem;}
+.hero-logo-mark{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:1.1rem;color:#fff;}
+.hero-logo-text{font-weight:600;font-size:1rem;letter-spacing:-0.01em;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);border:1px solid rgba(245,158,11,0.25);color:var(--gold);border-radius:var(--radius-full);padding:5px 14px;font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1.5rem;}
+.hero-title{font-family:var(--font-serif);font-size:clamp(2rem,3.5vw,3rem);font-weight:600;line-height:1.15;letter-spacing:-0.02em;margin-bottom:1rem;}
+.hero-title em{font-style:italic;color:var(--accent);}
+.hero-sub{color:var(--text2);font-size:1rem;line-height:1.7;margin-bottom:2.5rem;font-weight:300;max-width:380px;}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+.hero-right{position:relative;overflow:hidden;}
+.hero-img-stack{position:absolute;inset:0;display:grid;grid-template-rows:55% 45%;gap:3px;}
+.hero-img{width:100%;height:100%;object-fit:cover;display:block;}
+.hero-img-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--bg) 0%,transparent 30%),linear-gradient(to top,var(--bg) 0%,transparent 25%);}
+.hero-stats{position:absolute;bottom:2rem;right:2rem;left:2rem;display:flex;gap:12px;z-index:3;}
+.hero-stat{flex:1;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius);padding:1rem;text-align:center;}
+[data-theme="light"] .hero-stat{background:rgba(255,255,255,0.85);border-color:rgba(0,0,0,0.1);}
+.hero-stat-num{font-family:var(--font-serif);font-size:1.6rem;font-weight:600;line-height:1;margin-bottom:2px;}
+.hero-stat-label{font-size:0.72rem;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0.7rem 1.5rem;border-radius:var(--radius-sm);font-family:var(--font);font-size:0.875rem;font-weight:500;cursor:pointer;border:none;transition:all var(--t);text-decoration:none;white-space:nowrap;letter-spacing:-0.01em;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,0.35);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{opacity:0.85;}
+.btn-sm{padding:0.45rem 1rem;font-size:0.8rem;}
+.btn-icon{padding:0.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;transition:all var(--t);}
+.btn-icon:hover{color:var(--text);border-color:var(--border2);}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none!important;}
 
-    /* ── NOISE TEXTURE OVERLAY ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.4;
-    }
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:1.5rem;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2.25rem;width:100%;max-width:440px;position:relative;animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both;}
+.modal-x{position:absolute;top:1.25rem;right:1.25rem;background:var(--surface2);border:none;border-radius:50%;width:32px;height:32px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all var(--t);}
+.modal-x:hover{color:var(--text);background:var(--bg3);}
+.modal-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.modal-logo-mark{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:1rem;color:#fff;}
+.modal-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.78rem;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:0.01em;}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 0.9rem;color:var(--text);font-family:var(--font);font-size:0.9rem;outline:none;transition:border-color var(--t);}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3);}
+.age-check{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.age-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.age-check label{font-size:0.85rem;color:var(--text2);cursor:pointer;}
+.auth-switch{text-align:center;font-size:0.83rem;color:var(--text2);margin-top:1.25rem;}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:500;}
+.form-err{color:var(--danger);font-size:0.82rem;margin-top:0.6rem;display:none;}
+.form-err.show{display:block;}
+.form-ok{color:var(--success);font-size:0.82rem;margin-top:0.6rem;display:none;}
+.form-ok.show{display:block;}
 
-    /* ── PAGES ── */
-    .page { display: none; min-height: 100vh; position: relative; z-index: 1; }
-    .page.active { display: flex; flex-direction: column; }
+/* APP SHELL */
+#page-app{display:none;}
+#page-app.active{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:60px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.topbar-left{display:flex;align-items:center;gap:1.5rem;}
+.topbar-brand{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.topbar-brand-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:0.95rem;color:#fff;}
+.topbar-brand-name{font-weight:600;font-size:0.95rem;letter-spacing:-0.01em;color:var(--text);}
+.topbar-nav{display:flex;gap:4px;}
+.topbar-nav-item{padding:0.4rem 0.85rem;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--t);border:none;background:transparent;}
+.topbar-nav-item:hover{color:var(--text);background:var(--surface2);}
+.topbar-nav-item.active{color:var(--accent);background:var(--accent-light);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.theme-toggle{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all var(--t);}
+.theme-toggle:hover{color:var(--text);border-color:var(--border2);}
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-full);}
+.user-chip-av{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;color:#fff;}
+.user-chip-name{font-size:0.82rem;font-weight:500;color:var(--text);}
 
-    /* ── LANDING ── */
-    #page-landing {
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
-    }
+/* APP LAYOUT */
+.app-body{display:grid;grid-template-columns:240px 1fr 280px;flex:1;max-width:1200px;width:100%;margin:0 auto;}
+.sidebar-left{padding:1.75rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;display:flex;flex-direction:column;gap:0.25rem;}
+.sidebar-section{margin-bottom:1.5rem;}
+.sidebar-label{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:0 0.75rem;margin-bottom:0.5rem;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:0.6rem 0.75rem;border-radius:var(--radius-sm);font-size:0.875rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--t);border:none;background:transparent;width:100%;text-align:left;}
+.sidebar-item:hover{color:var(--text);background:var(--surface2);}
+.sidebar-item.active{color:var(--accent);background:var(--accent-light);}
+.main-content{padding:1.75rem;max-width:680px;width:100%;}
+.sidebar-right{padding:1.75rem 1.25rem;border-left:1px solid var(--border);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+.widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;}
+.widget-title{font-size:0.875rem;font-weight:600;margin-bottom:1rem;color:var(--text);}
 
-    .landing-inner { max-width: 480px; animation: fadeUp 0.8s ease both; }
+/* TAB PANELS */
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeUp 0.25s ease both;}
 
-    .logo-mark {
-      width: 64px; height: 64px;
-      border: 1.5px solid var(--gold);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 2rem;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      color: var(--gold);
-      box-shadow: 0 0 30px rgba(201,168,76,0.2);
-    }
+/* FEED */
+.dc-strip{display:flex;gap:6px;margin-bottom:1.25rem;height:120px;border-radius:var(--radius);overflow:hidden;}
+.dc-strip-img{flex:1;object-fit:cover;display:block;}
+.composer{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
+.composer-top{display:flex;gap:12px;margin-bottom:1rem;}
+.composer-av{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:#fff;flex-shrink:0;}
+.composer-input{flex:1;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 1rem;color:var(--text);font-family:var(--font);font-size:0.9rem;resize:none;outline:none;min-height:80px;transition:border-color var(--t);}
+.composer-input:focus{border-color:var(--accent);}
+.composer-input::placeholder{color:var(--text3);}
+.composer-footer{display:flex;justify-content:flex-end;gap:10px;align-items:center;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:0.75rem;transition:border-color var(--t);}
+.post-card:hover{border-color:var(--border2);}
+.post-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:0.875rem;}
+.post-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--accent-light);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:var(--accent);}
+.post-meta{flex:1;}
+.post-author{font-weight:600;font-size:0.9rem;letter-spacing:-0.01em;}
+.post-time{font-size:0.75rem;color:var(--text3);margin-top:1px;}
+.post-body{font-size:0.9rem;line-height:1.65;color:var(--text);}
+.post-actions{display:flex;gap:4px;margin-top:1rem;padding-top:0.875rem;border-top:1px solid var(--border);}
+.post-act{display:flex;align-items:center;gap:6px;padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text2);border:none;background:transparent;cursor:pointer;transition:all var(--t);font-family:var(--font);}
+.post-act:hover{background:var(--surface2);color:var(--text);}
+.post-act.liked{color:var(--danger);}
 
-    .landing-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.4rem, 7vw, 3.6rem);
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      margin-bottom: 1rem;
-    }
+/* EVENTS */
+.event-hero{border-radius:var(--radius);overflow:hidden;height:160px;margin-bottom:1.5rem;position:relative;}
+.event-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.event-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;}
+.event-hero-title{font-family:var(--font-serif);font-size:1.3rem;font-weight:600;color:#fff;}
+.event-hero-sub{font-size:0.8rem;color:rgba(255,255,255,0.75);margin-top:2px;}
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:0.75rem;display:flex;gap:1.1rem;align-items:flex-start;cursor:pointer;transition:all var(--t);}
+.event-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.event-date{background:var(--accent-light);border:1px solid rgba(37,99,235,0.2);border-radius:10px;width:50px;height:54px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.event-date-mon{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);}
+.event-date-day{font-size:1.35rem;font-weight:700;line-height:1;color:var(--accent);font-family:var(--font-serif);}
+.event-info{flex:1;}
+.event-name{font-weight:600;font-size:0.9rem;margin-bottom:3px;letter-spacing:-0.01em;}
+.event-meta{font-size:0.78rem;color:var(--text2);}
+.event-going{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:0.76rem;color:var(--text2);}
+.event-going strong{color:var(--accent);}
+.going-btn{padding:0.35rem 0.85rem;font-size:0.78rem;border-radius:var(--radius-sm);background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:var(--font);font-weight:500;transition:all var(--t);flex-shrink:0;}
+.going-btn:hover{background:var(--accent-hover);}
+.going-btn.attending{background:var(--success);}
 
-    .landing-title span { color: var(--gold); }
+/* MEMBERS */
+.members-search-bar{display:flex;gap:10px;margin-bottom:1.5rem;}
+.members-search-bar input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.6rem 1rem;color:var(--text);font-family:var(--font);font-size:0.875rem;outline:none;transition:border-color var(--t);}
+.members-search-bar input:focus{border-color:var(--accent);}
+.members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.875rem;}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;text-align:center;cursor:pointer;transition:all var(--t);}
+.member-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
+.member-av{width:52px;height:52px;border-radius:50%;background:var(--accent-light);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--accent);margin:0 auto 0.75rem;}
+.member-name{font-weight:600;font-size:0.875rem;margin-bottom:2px;letter-spacing:-0.01em;}
+.member-loc{font-size:0.75rem;color:var(--text3);}
+.member-badge{display:inline-block;margin-top:6px;font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);background:var(--gold-light);color:var(--gold);border:1px solid rgba(245,158,11,0.2);}
+.admin-badge{background:rgba(37,99,235,0.1);color:var(--accent);border-color:rgba(37,99,235,0.2);}
 
-    .landing-sub {
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.6;
-      margin-bottom: 2.5rem;
-      font-weight: 300;
-    }
+/* ADMIN */
+.admin-header{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.admin-header::before{content:'⚡';font-size:5rem;position:absolute;right:1rem;top:-0.5rem;opacity:0.1;}
+.admin-header-title{font-family:var(--font-serif);font-size:1.35rem;font-weight:600;color:#fff;margin-bottom:0.25rem;}
+.admin-header-sub{font-size:0.82rem;color:rgba(255,255,255,0.7);}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.875rem;margin-bottom:1.5rem;}
+.admin-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;text-align:center;}
+.admin-stat-num{font-family:var(--font-serif);font-size:1.75rem;font-weight:600;line-height:1;}
+.admin-stat-label{font-size:0.72rem;color:var(--text2);margin-top:4px;font-weight:500;}
+.admin-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden;}
+.admin-section-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.admin-section-title{font-weight:600;font-size:0.9rem;}
+.admin-table{width:100%;border-collapse:collapse;}
+.admin-table th{padding:0.6rem 1.25rem;text-align:left;font-size:0.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+.admin-table td{padding:0.85rem 1.25rem;font-size:0.85rem;border-bottom:1px solid var(--border);}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--surface2);}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:var(--radius-full);font-size:0.72rem;font-weight:600;}
+.status-active{background:rgba(16,185,129,0.12);color:var(--success);}
+.status-pending{background:var(--gold-light);color:var(--gold);}
+.status-banned{background:rgba(239,68,68,0.12);color:var(--danger);}
+.admin-act-btn{padding:0.3rem 0.65rem;font-size:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all var(--t);margin-left:4px;}
+.admin-act-btn:hover{background:var(--surface2);color:var(--text);}
+.admin-act-btn.red:hover{background:rgba(239,68,68,0.1);color:var(--danger);border-color:rgba(239,68,68,0.3);}
 
-    .btn-group { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+/* SHARED */
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;}
+.section-title{font-weight:600;font-size:1.05rem;letter-spacing:-0.01em;}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2);}
+.empty-icon{font-size:2.25rem;margin-bottom:0.75rem;}
+.empty-text{font-size:0.875rem;line-height:1.6;}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+.loading{display:flex;justify-content:center;padding:2.5rem;}
+.dc-img-widget{border-radius:var(--radius);overflow:hidden;height:140px;margin-bottom:1rem;position:relative;}
+.dc-img-widget img{width:100%;height:100%;object-fit:cover;display:block;}
+.dc-img-widget-cap{position:absolute;bottom:0;left:0;right:0;padding:0.75rem;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%);font-size:0.75rem;color:rgba(255,255,255,0.9);font-weight:500;}
+.trend-item{display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.83rem;}
+.trend-item:last-child{border-bottom:none;}
+.trend-num{font-size:0.7rem;color:var(--text3);font-weight:600;width:16px;}
+.trend-text{flex:1;font-weight:500;}
+.trend-count{font-size:0.72rem;color:var(--text3);}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 1.25rem;font-size:0.875rem;font-weight:500;z-index:500;opacity:0;transition:all 0.3s ease;pointer-events:none;box-shadow:var(--shadow-lg);white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 0.75rem 1.75rem;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      letter-spacing: 0.02em;
-    }
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    .btn-primary {
-      background: var(--gold);
-      color: #0d0d0f;
-    }
-    .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-    .btn-danger:hover { opacity: 0.85; }
-
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
-    /* ── AUTH MODAL ── */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 420px;
-      animation: fadeUp 0.3s ease both;
-    }
-
-    .modal-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-    }
-
-    .modal-sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.75rem; }
-
-    .field { margin-bottom: 1rem; }
-    .field label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.05em; text-transform: uppercase; }
-    .field input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .field input:focus { border-color: var(--gold); }
-    .field input::placeholder { color: var(--muted); }
-
-    .auth-switch { margin-top: 1.25rem; text-align: center; font-size: 0.85rem; color: var(--muted); }
-    .auth-switch a { color: var(--gold); cursor: pointer; text-decoration: none; }
-    .auth-switch a:hover { text-decoration: underline; }
-
-    .modal-close {
-      position: absolute;
-      top: 1rem; right: 1rem;
-      background: none; border: none;
-      color: var(--muted); font-size: 1.3rem; cursor: pointer;
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%;
-      transition: color 0.2s, background 0.2s;
-    }
-    .modal-close:hover { color: var(--text); background: var(--surface2); }
-
-    .error-msg { color: var(--danger); font-size: 0.82rem; margin-top: 0.75rem; display: none; }
-    .error-msg.show { display: block; }
-    .success-msg { color: #5cb85c; font-size: 0.82rem; margin-top: 0.75rem; display: none; }
-    .success-msg.show { display: block; }
-
-    /* ── APP LAYOUT ── */
-    #page-app { flex-direction: column; }
-
-    .topbar {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.875rem 1.5rem;
-      background: rgba(13,13,15,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .topbar-brand {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--gold);
-    }
-
-    .topbar-user { display: flex; align-items: center; gap: 0.75rem; }
-    .avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      background: var(--gold-dim);
-      border: 1.5px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.8rem; font-weight: 600; color: var(--gold);
-      cursor: pointer;
-    }
-
-    .tab-bar {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      padding: 0 1.5rem;
-      gap: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .tab-bar::-webkit-scrollbar { display: none; }
-
-    .tab {
-      padding: 0.9rem 1.25rem;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-    .tab:hover:not(.active) { color: var(--text); }
-
-    .app-content { flex: 1; padding: 1.5rem; max-width: 720px; width: 100%; margin: 0 auto; }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fadeUp 0.3s ease both; }
-
-    /* ── FEED ── */
-    .feed-composer {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .feed-composer textarea {
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
-      resize: none;
-      outline: none;
-      min-height: 72px;
-    }
-    .feed-composer textarea::placeholder { color: var(--muted); }
-
-    .composer-footer { display: flex; justify-content: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
-
-    .post-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-      transition: border-color 0.2s;
-    }
-    .post-card:hover { border-color: rgba(201,168,76,0.2); }
-
-    .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-    .post-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: var(--gold-dim);
-      border: 1px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.8rem; font-weight: 600; color: var(--gold);
-      flex-shrink: 0;
-    }
-    .post-meta { flex: 1; }
-    .post-author { font-weight: 500; font-size: 0.9rem; }
-    .post-time { color: var(--muted); font-size: 0.78rem; }
-    .post-body { font-size: 0.95rem; line-height: 1.65; color: var(--text); }
-
-    .post-actions { display: flex; gap: 1rem; margin-top: 1rem; }
-    .post-action-btn {
-      background: none; border: none; color: var(--muted);
-      font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;
-      padding: 0.3rem 0; transition: color 0.2s;
-    }
-    .post-action-btn:hover { color: var(--gold); }
-    .post-action-btn.liked { color: var(--gold); }
-
-    /* ── EVENTS ── */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1.25rem;
-    }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem; font-weight: 700;
-    }
-
-    .event-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-      display: flex; gap: 1rem;
-      transition: border-color 0.2s;
-    }
-    .event-card:hover { border-color: rgba(201,168,76,0.25); }
-
-    .event-date-box {
-      background: var(--gold-dim);
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 8px;
-      width: 52px; height: 56px; flex-shrink: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: var(--gold);
-    }
-    .event-month { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-    .event-day { font-size: 1.4rem; font-weight: 700; line-height: 1; font-family: 'Playfair Display', serif; }
-
-    .event-info { flex: 1; }
-    .event-name { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; }
-    .event-meta { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.5rem; }
-    .event-going { font-size: 0.8rem; color: var(--muted); }
-    .event-going strong { color: var(--gold); }
-
-    /* ── MEMBERS ── */
-    .members-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 1rem;
-    }
-
-    .member-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1rem;
-      text-align: center;
-      transition: border-color 0.2s, transform 0.2s;
-      cursor: pointer;
-    }
-    .member-card:hover { border-color: rgba(201,168,76,0.25); transform: translateY(-2px); }
-
-    .member-avatar {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: var(--gold-dim);
-      border: 1.5px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; font-weight: 700; color: var(--gold);
-      margin: 0 auto 0.75rem;
-    }
-    .member-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.2rem; }
-    .member-location { color: var(--muted); font-size: 0.78rem; }
-
-    /* ── EMPTY STATE ── */
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--muted);
-    }
-    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .empty-text { font-size: 0.9rem; line-height: 1.6; }
-
-    /* ── LOADING ── */
-    .spinner {
-      width: 20px; height: 20px;
-      border: 2px solid rgba(201,168,76,0.3);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-    }
-
-    .loading-center { display: flex; justify-content: center; padding: 2rem; }
-
-    /* ── TOAST ── */
-    #toast {
-      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1.25rem;
-      font-size: 0.875rem;
-      z-index: 200;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    #toast.show { opacity: 1; }
-
-    /* ── AGE BADGE ── */
-    .age-badge {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: var(--gold-dim);
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 20px;
-      padding: 0.25rem 0.75rem;
-      font-size: 0.75rem;
-      color: var(--gold);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      margin-bottom: 1.5rem;
-    }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 480px) {
-      .app-content { padding: 1rem; }
-      .topbar { padding: 0.75rem 1rem; }
-    }
-  </style>
+@media(max-width:1100px){.app-body{grid-template-columns:220px 1fr;}.sidebar-right{display:none;}}
+@media(max-width:768px){.hero{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:2.5rem 1.5rem;}.app-body{grid-template-columns:1fr;}.sidebar-left{display:none;}.main-content{padding:1rem;}.topbar-nav{display:none;}}
+</style>
 </head>
 <body>
 
-<!-- ══════════════════════════════
-     LANDING PAGE
-══════════════════════════════ -->
+<!-- LANDING -->
 <div id="page-landing" class="page active">
-  <div class="landing-inner">
-    <div class="logo-mark">D</div>
-    <div class="age-badge">🔒 21+ Private Community</div>
-    <h1 class="landing-title">Your <span>DMV</span> circle,<br/>members only.</h1>
-    <p class="landing-sub">DC · Maryland · Virginia — one private space for real connections, local events, and the people who make this region home.</p>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="openModal('signup')">Request Access</button>
-      <button class="btn btn-ghost" onclick="openModal('login')">Sign In</button>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-logo">
+        <div class="hero-logo-mark">D</div>
+        <span class="hero-logo-text">DMV Friends</span>
+      </div>
+      <div class="hero-badge">🔒 21+ Private Community</div>
+      <h1 class="hero-title">Your <em>DC · MD · VA</em><br/>circle. Members only.</h1>
+      <p class="hero-sub">One private space for real connections, local events, and the people who make this region home.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary" onclick="openModal('signup')">Request Access →</button>
+        <button class="btn btn-secondary" onclick="openModal('login')">Sign In</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-img-stack">
+        <img class="hero-img" src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=900&q=80&fit=crop" alt="Washington DC skyline"/>
+        <img class="hero-img" src="https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=900&q=80&fit=crop" alt="DC social scene"/>
+      </div>
+      <div class="hero-img-overlay"></div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num" id="stat-members">—</div><div class="hero-stat-label">Members</div></div>
+        <div class="hero-stat"><div class="hero-stat-num" id="stat-events">—</div><div class="hero-stat-label">Events</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">DMV</div><div class="hero-stat-label">Region</div></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════
-     APP PAGE
-══════════════════════════════ -->
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <!-- SIGNUP -->
+    <div id="f-signup">
+      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Join DMV Friends</span></div>
+      <div class="field"><label>Invite Code</label><input id="s-code" type="text" placeholder="DMV2026" autocomplete="off"/></div>
+      <div class="field"><label>Display Name</label><input id="s-name" type="text" placeholder="What should we call you?"/></div>
+      <div class="field"><label>Location (DC / MD / VA)</label><input id="s-loc" type="text" placeholder="e.g. Adams Morgan, DC"/></div>
+      <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="you@example.com"/></div>
+      <div class="field"><label>Password</label><input id="s-pass" type="password" placeholder="Min 8 characters"/></div>
+      <div class="age-check"><input type="checkbox" id="s-age"/><label for="s-age">I confirm I am 21 years of age or older</label></div>
+      <button class="btn btn-primary" style="width:100%;" id="s-btn" onclick="doSignup()">Create Account</button>
+      <div class="form-err" id="s-err"></div><div class="form-ok" id="s-ok"></div>
+      <div class="auth-switch">Already a member? <a onclick="switchForm('login')">Sign in</a></div>
+    </div>
+    <!-- LOGIN -->
+    <div id="f-login" style="display:none;">
+      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Welcome back</span></div>
+      <div class="field"><label>Email</label><input id="l-email" type="email" placeholder="you@example.com"/></div>
+      <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="Your password"/></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="l-btn" onclick="doLogin()">Sign In</button>
+      <div class="form-err" id="l-err"></div>
+      <div class="auth-switch">Need access? <a onclick="switchForm('signup')">Request invite</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
 <div id="page-app" class="page">
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-brand">DMV Friends</div>
-    <div class="topbar-user">
-      <div class="avatar" id="user-avatar" title="Profile">?</div>
-      <button class="btn btn-ghost" style="padding: 0.5rem 1rem; font-size:0.8rem;" onclick="signOut()">Sign Out</button>
+    <div class="topbar-left">
+      <a class="topbar-brand" href="#" onclick="return false;"><div class="topbar-brand-mark">D</div><span class="topbar-brand-name">DMV Friends</span></a>
+      <nav class="topbar-nav">
+        <button class="topbar-nav-item active" onclick="switchPanel('feed',this)">Feed</button>
+        <button class="topbar-nav-item" onclick="switchPanel('events',this)">Events</button>
+        <button class="topbar-nav-item" onclick="switchPanel('members',this)">Members</button>
+        <button class="topbar-nav-item admin-only" onclick="switchPanel('admin',this)" style="display:none;">⚡ Admin</button>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+      <div class="user-chip"><div class="user-chip-av" id="topbar-av">?</div><span class="user-chip-name" id="topbar-nm">...</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign out</button>
     </div>
   </div>
 
-  <div class="tab-bar">
-    <div class="tab active" data-tab="feed">Feed</div>
-    <div class="tab" data-tab="events">Events</div>
-    <div class="tab" data-tab="members">Members</div>
-  </div>
+  <!-- BODY -->
+  <div class="app-body">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-left">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigate</div>
+        <button class="sidebar-item active" onclick="switchPanel('feed',this)">🏠 &nbsp;Feed</button>
+        <button class="sidebar-item" onclick="switchPanel('events',this)">📅 &nbsp;Events</button>
+        <button class="sidebar-item" onclick="switchPanel('members',this)">👥 &nbsp;Members</button>
+      </div>
+      <div class="sidebar-section admin-only" id="admin-sidebar-sec" style="display:none;">
+        <div class="sidebar-label">Admin</div>
+        <button class="sidebar-item" onclick="switchPanel('admin',this)">⚡ &nbsp;Admin Panel</button>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+        <div style="font-size:0.75rem;font-weight:600;margin-bottom:4px;">Invite a friend</div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:8px;">Share the code below</div>
+        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:0.45rem 0.75rem;font-size:0.8rem;font-family:monospace;cursor:pointer;letter-spacing:0.05em;" onclick="copyCode()">DMV2026 &nbsp;📋</div>
+      </div>
+    </aside>
 
-  <div class="app-content">
-    <!-- FEED TAB -->
-    <div id="tab-feed" class="tab-panel active">
-      <div class="feed-composer">
-        <textarea id="post-input" placeholder="What's going on in the DMV?"></textarea>
-        <div class="composer-footer">
-          <button class="btn btn-primary" onclick="submitPost()" id="post-btn" style="padding: 0.6rem 1.25rem; font-size:0.85rem;">Post</button>
+    <!-- MAIN -->
+    <main class="main-content">
+      <!-- FEED -->
+      <div id="tab-feed" class="tab-panel active">
+        <div class="dc-strip">
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=600&q=70&fit=crop" alt="DC night"/>
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=600&q=70&fit=crop" alt="DC social"/>
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=600&q=70&fit=crop" alt="DMV lifestyle"/>
+        </div>
+        <div class="composer">
+          <div class="composer-top">
+            <div class="composer-av" id="composer-av">?</div>
+            <textarea class="composer-input" id="post-text" placeholder="What's going on in the DMV?"></textarea>
+          </div>
+          <div class="composer-footer">
+            <button class="btn btn-ghost btn-sm">📷 Photo</button>
+            <button class="btn btn-primary btn-sm" id="post-btn" onclick="submitPost()">Post</button>
+          </div>
+        </div>
+        <div id="feed-list"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- EVENTS -->
+      <div id="tab-events" class="tab-panel">
+        <div class="event-hero">
+          <img src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=900&q=80&fit=crop" alt="DC events"/>
+          <div class="event-hero-overlay">
+            <div class="event-hero-title">Upcoming Events</div>
+            <div class="event-hero-sub">Curated for the DMV community</div>
+          </div>
+        </div>
+        <div class="section-row">
+          <div class="section-title">What's happening</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddEvent()">+ Add Event</button>
+        </div>
+        <div id="events-list"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div id="tab-members" class="tab-panel">
+        <div class="section-row">
+          <div class="section-title">Community Members</div>
+          <span id="member-count" style="font-size:0.8rem;color:var(--text2);"></span>
+        </div>
+        <div class="members-search-bar">
+          <input type="text" placeholder="Search members by name or location..." id="member-search" oninput="filterMembers()"/>
+        </div>
+        <div id="members-grid" class="members-grid"><div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="tab-admin" class="tab-panel">
+        <div class="admin-header">
+          <div class="admin-header-title">Admin Dashboard</div>
+          <div class="admin-header-sub">Full control over your DMV Friends community</div>
+        </div>
+        <div class="admin-stats">
+          <div class="admin-stat"><div class="admin-stat-num" id="a-members">—</div><div class="admin-stat-label">Members</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="a-posts">—</div><div class="admin-stat-label">Posts</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="a-events">—</div><div class="admin-stat-label">Events</div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">👥 All Members</div><button class="btn btn-ghost btn-sm" onclick="loadAdminMembers()">↻ Refresh</button></div>
+          <div id="admin-members-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">📝 Recent Posts</div><button class="btn btn-ghost btn-sm" onclick="loadAdminPosts()">↻ Refresh</button></div>
+          <div id="admin-posts-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">📅 Events</div><button class="btn btn-primary btn-sm" onclick="openAddEvent()">+ Add Event</button></div>
+          <div id="admin-events-list"><div class="loading"><div class="spinner"></div></div></div>
         </div>
       </div>
-      <div id="feed-list">
-        <div class="loading-center"><div class="spinner"></div></div>
-      </div>
-    </div>
+    </main>
 
-    <!-- EVENTS TAB -->
-    <div id="tab-events" class="tab-panel">
-      <div class="section-header">
-        <div class="section-title">Upcoming Events</div>
-        <button class="btn btn-ghost" style="padding:0.5rem 1rem; font-size:0.8rem;" onclick="openAddEvent()">+ Add Event</button>
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar-right">
+      <div class="dc-img-widget">
+        <img src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=600&q=70&fit=crop" alt="DC skyline"/>
+        <div class="dc-img-widget-cap">Washington, DC</div>
       </div>
-      <div id="events-list">
-        <div class="loading-center"><div class="spinner"></div></div>
+      <div class="widget">
+        <div class="widget-title">🔥 Trending in DMV</div>
+        <div class="trend-item"><span class="trend-num">1</span><span class="trend-text">#DCNightlife</span><span class="trend-count">24 posts</span></div>
+        <div class="trend-item"><span class="trend-num">2</span><span class="trend-text">#Georgetown</span><span class="trend-count">18 posts</span></div>
+        <div class="trend-item"><span class="trend-num">3</span><span class="trend-text">#DMVBrunch</span><span class="trend-count">15 posts</span></div>
+        <div class="trend-item"><span class="trend-num">4</span><span class="trend-text">#NoVA</span><span class="trend-count">12 posts</span></div>
+        <div class="trend-item"><span class="trend-num">5</span><span class="trend-text">#MDSuburbs</span><span class="trend-count">9 posts</span></div>
       </div>
-    </div>
-
-    <!-- MEMBERS TAB -->
-    <div id="tab-members" class="tab-panel">
-      <div class="section-header">
-        <div class="section-title">Members</div>
+      <div class="widget">
+        <div class="widget-title">🗓 This Week</div>
+        <div id="sidebar-events"><div class="spinner" style="margin:0 auto;display:block;"></div></div>
       </div>
-      <div id="members-grid" class="members-grid">
-        <div class="loading-center" style="grid-column:1/-1"><div class="spinner"></div></div>
-      </div>
-    </div>
+    </aside>
   </div>
 </div>
 
-<!-- ══════════════════════════════
-     AUTH MODAL
-══════════════════════════════ -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal" style="position:relative;">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-
-    <!-- SIGNUP -->
-    <div id="form-signup">
-      <div class="modal-title">Join DMVfriends</div>
-      <div class="modal-sub">You'll need an invite code to get in.</div>
-      <div class="field">
-        <label>Invite Code</label>
-        <input type="text" id="signup-code" placeholder="Enter your invite code" autocomplete="off" />
-      </div>
-      <div class="field">
-        <label>Display Name</label>
-        <input type="text" id="signup-name" placeholder="What should we call you?" />
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="signup-email" placeholder="you@example.com" />
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="signup-password" placeholder="Min 8 characters" />
-      </div>
-      <div class="field" style="display:flex; align-items:center; gap:0.5rem;">
-        <input type="checkbox" id="signup-age" style="width:auto; accent-color: var(--gold);" />
-        <label for="signup-age" style="text-transform:none; font-size:0.875rem; color:var(--muted);">I confirm I am 21 or older</label>
-      </div>
-      <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" id="signup-btn" onclick="handleSignup()">Create Account</button>
-      <div class="error-msg" id="signup-error"></div>
-      <div class="success-msg" id="signup-success"></div>
-      <div class="auth-switch">Already in? <a onclick="switchForm('login')">Sign in</a></div>
-    </div>
-
-    <!-- LOGIN -->
-    <div id="form-login" style="display:none;">
-      <div class="modal-title">Welcome back</div>
-      <div class="modal-sub">Sign in to your DMVfriends account.</div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="login-email" placeholder="you@example.com" />
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Your password" />
-      </div>
-      <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" id="login-btn" onclick="handleLogin()">Sign In</button>
-      <div class="error-msg" id="login-error"></div>
-      <div class="auth-switch">Need an account? <a onclick="switchForm('signup')">Request access</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- ══════════════════════════════
-     SCRIPT
-══════════════════════════════ -->
 <script>
-  const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
-  const INVITE_CODE  = 'DMV2026';
+const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
+const INVITE_CODE  = 'DMV2026';
+// ↓↓ PUT YOUR EMAIL HERE to get admin access ↓↓
+const ADMIN_EMAILS = ['your@email.com'];
 
-  const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+let me=null,myProfile=null,isAdmin=false,allMembers=[];
 
-  let currentUser = null;
-  let currentProfile = null;
-
-  // ── INIT ──────────────────────────────────────
-  async function init() {
-    // Handle email confirmation: Supabase puts tokens in the URL hash
-    const hash = window.location.hash;
-    if (hash && hash.includes('access_token')) {
-      // Show a "confirming..." state while Supabase processes the token
-      showConfirming();
-      // Supabase JS v2 automatically exchanges the hash tokens
-      // onAuthStateChange below will fire once it's done
+// INIT
+async function init(){
+  const hash=window.location.hash;
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('error')){
+    openModal('login');
+    setTimeout(()=>showErr('l-err','Confirmation link expired. Please sign in.'),200);
+    window.history.replaceState({},'',window.location.pathname);
+    return;
+  }
+  const {data:{session}}=await db.auth.getSession();
+  if(session?.user){me=session.user;await setupUser();showApp();}
+  db.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user){
+      me=session.user;
+      if(window.location.hash)window.history.replaceState({},'',window.location.pathname);
+      await setupUser();showApp();toast('Welcome to DMV Friends! 🎉');
+    }else if(event==='SIGNED_OUT'){
+      me=null;myProfile=null;isAdmin=false;
+      document.getElementById('page-app').classList.remove('active');
+      document.getElementById('page-landing').classList.add('active');
     }
-
-    // Also handle ?error= in URL (e.g. expired link)
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('error')) {
-      showLanding();
-      openModal('login');
-      setTimeout(() => {
-        const errEl = document.getElementById('login-error');
-        showErr(errEl, 'Confirmation link expired. Please sign in or request a new link.');
-      }, 200);
-      // Clean the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-
-    const { data: { session } } = await db.auth.getSession();
-    if (session?.user) {
-      currentUser = session.user;
-      await loadProfile();
-      showApp();
-    } else if (!hash.includes('access_token')) {
-      showLanding();
-    }
-
-    db.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        currentUser = session.user;
-        // Clean the ugly hash from the URL
-        if (window.location.hash) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        await ensureProfile(session.user);
-        showApp();
-        toast('Welcome to DMV Friends! 🎉');
-      } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-        currentProfile = null;
-        showLanding();
-      }
-    });
-  }
-
-  function showConfirming() {
-    // Show a simple "confirming your account..." overlay
-    document.getElementById('page-landing').classList.add('active');
-    const inner = document.querySelector('.landing-inner');
-    if (inner) {
-      inner.innerHTML = `
-        <div class="logo-mark">D</div>
-        <div style="margin-bottom:1rem;"><div class="spinner" style="width:32px;height:32px;border-width:3px;"></div></div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.5rem;">Confirming your account…</h2>
-        <p style="color:var(--muted);font-size:0.9rem;">Just a moment, you'll be inside shortly.</p>
-      `;
-    }
-  }
-
-  // Ensure a profile row exists (handles case where signup callback didn't fire)
-  async function ensureProfile(user) {
-    const { data } = await db.from('profiles').select('id').eq('id', user.id).single();
-    if (!data) {
-      const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Member';
-      await db.from('profiles').insert({
-        id: user.id,
-        display_name: name,
-        email: user.email,
-        location: 'DMV',
-        created_at: new Date().toISOString()
-      });
-    }
-    await loadProfile();
-  }
-
-  async function loadProfile() {
-    const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
-    currentProfile = data;
-    const initials = (currentProfile?.display_name || currentUser.email || '?')[0].toUpperCase();
-    const avatarEl = document.getElementById('user-avatar'); if (avatarEl) avatarEl.textContent = initials;
-  }
-
-  // ── PAGE ROUTING ──────────────────────────────
-  function showApp() {
-    document.getElementById('page-landing').classList.remove('active');
-    document.getElementById('page-app').classList.add('active');
-    closeModal();
-    loadFeed();
-    loadEvents();
-    loadMembers();
-  }
-
-  function showLanding() {
-    document.getElementById('page-app').classList.remove('active');
-    document.getElementById('page-landing').classList.add('active');
-  }
-
-  // ── TABS ──────────────────────────────────────
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    });
   });
+  loadLandingStats();
+}
 
-  // ── MODAL ─────────────────────────────────────
-  function openModal(form) {
-    document.getElementById('auth-modal').classList.add('open');
-    switchForm(form);
+async function setupUser(){
+  isAdmin=ADMIN_EMAILS.includes(me.email);
+  const{data}=await db.from('profiles').select('*').eq('id',me.id).single();
+  if(!data){
+    const nm=me.user_metadata?.display_name||me.email.split('@')[0];
+    const loc=me.user_metadata?.location||'DMV';
+    await db.from('profiles').insert({id:me.id,display_name:nm,email:me.email,location:loc,is_admin:isAdmin,created_at:new Date().toISOString()});
+    myProfile={display_name:nm,email:me.email,location:loc,is_admin:isAdmin};
+  }else{
+    myProfile=data;
+    if(data.is_admin)isAdmin=true;
   }
-  function closeModal() { document.getElementById('auth-modal').classList.remove('open'); }
-  function switchForm(form) {
-    document.getElementById('form-signup').style.display = form === 'signup' ? 'block' : 'none';
-    document.getElementById('form-login').style.display  = form === 'login'  ? 'block' : 'none';
-  }
-  document.getElementById('auth-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('auth-modal')) closeModal();
-  });
+  const init=(myProfile.display_name||me.email)[0].toUpperCase();
+  const nm=myProfile.display_name||me.email;
+  document.getElementById('topbar-av').textContent=init;
+  document.getElementById('topbar-nm').textContent=nm;
+  document.getElementById('composer-av').textContent=init;
+  if(isAdmin){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
+}
 
-  // ── AUTH ──────────────────────────────────────
-  async function handleSignup() {
-    const code     = document.getElementById('signup-code').value.trim().toUpperCase();
-    const name     = document.getElementById('signup-name').value.trim();
-    const email    = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-    const ageOk    = document.getElementById('signup-age').checked;
-    const errEl    = document.getElementById('signup-error');
-    const okEl     = document.getElementById('signup-success');
-    const btn      = document.getElementById('signup-btn');
+// PAGES
+function showApp(){
+  document.getElementById('page-landing').classList.remove('active');
+  document.getElementById('page-app').classList.add('active');
+  closeModal();
+  loadFeed();loadEvents();loadMembers();loadSidebarEvents();
+  if(isAdmin){loadAdminStats();loadAdminMembers();loadAdminPosts();loadAdminEvents();}
+}
 
-    errEl.className = 'error-msg'; okEl.className = 'success-msg';
+// THEME
+let theme=localStorage.getItem('dmv-theme')||'dark';
+document.documentElement.setAttribute('data-theme',theme);
+function updateThemeBtn(){const b=document.getElementById('theme-btn');if(b)b.textContent=theme==='dark'?'☀️':'🌙';}
+updateThemeBtn();
+function toggleTheme(){theme=theme==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem('dmv-theme',theme);updateThemeBtn();}
 
-    if (code !== INVITE_CODE) { showErr(errEl, 'Invalid invite code.'); return; }
-    if (!name) { showErr(errEl, 'Please enter a display name.'); return; }
-    if (!email || !password) { showErr(errEl, 'Email and password required.'); return; }
-    if (password.length < 8) { showErr(errEl, 'Password must be at least 8 characters.'); return; }
-    if (!ageOk) { showErr(errEl, 'You must confirm you are 21+.'); return; }
+// NAV
+function switchPanel(panel,el){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav-item,.sidebar-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+panel).classList.add('active');
+  if(el)el.classList.add('active');
+}
 
-    btn.disabled = true; btn.textContent = 'Creating account…';
+// MODAL
+function openModal(f){document.getElementById('auth-overlay').classList.add('open');switchForm(f);}
+function closeModal(){document.getElementById('auth-overlay').classList.remove('open');}
+function switchForm(f){document.getElementById('f-signup').style.display=f==='signup'?'block':'none';document.getElementById('f-login').style.display=f==='login'?'block':'none';}
+document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('auth-overlay'))closeModal();});
 
-    const { data, error } = await db.auth.signUp({
-      email, password,
-      options: { data: { display_name: name } }
-    });
+// AUTH
+async function doSignup(){
+  const code=document.getElementById('s-code').value.trim().toUpperCase();
+  const name=document.getElementById('s-name').value.trim();
+  const loc=document.getElementById('s-loc').value.trim();
+  const email=document.getElementById('s-email').value.trim();
+  const pass=document.getElementById('s-pass').value;
+  const age=document.getElementById('s-age').checked;
+  const btn=document.getElementById('s-btn');
+  clearMsg('s-err');clearMsg('s-ok');
+  if(code!==INVITE_CODE)return showErr('s-err','Invalid invite code.');
+  if(!name)return showErr('s-err','Display name required.');
+  if(!email||!pass)return showErr('s-err','Email and password required.');
+  if(pass.length<8)return showErr('s-err','Password must be 8+ characters.');
+  if(!age)return showErr('s-err','You must be 21+ to join.');
+  btn.disabled=true;btn.textContent='Creating account…';
+  const{data,error}=await db.auth.signUp({email,password:pass,options:{data:{display_name:name,location:loc||'DMV'}}});
+  if(error){showErr('s-err',error.message);btn.disabled=false;btn.textContent='Create Account';return;}
+  if(data.user){await db.from('profiles').upsert({id:data.user.id,display_name:name,email,location:loc||'DMV',is_admin:false,created_at:new Date().toISOString()});}
+  showOk('s-ok','✅ Account created! Check your email to confirm, then sign in.');
+  btn.disabled=false;btn.textContent='Create Account';
+}
 
-    if (error) {
-      showErr(errEl, error.message);
-      btn.disabled = false; btn.textContent = 'Create Account';
-      return;
-    }
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const btn=document.getElementById('l-btn');
+  clearMsg('l-err');
+  if(!email||!pass)return showErr('l-err','Email and password required.');
+  btn.disabled=true;btn.textContent='Signing in…';
+  const{error}=await db.auth.signInWithPassword({email,password:pass});
+  if(error){showErr('l-err',error.message);btn.disabled=false;btn.textContent='Sign In';}
+}
 
-    // upsert profile
-    if (data.user) {
-      await db.from('profiles').upsert({
-        id: data.user.id,
-        display_name: name,
-        email: email,
-        location: 'DMV',
-        created_at: new Date().toISOString()
-      });
-    }
+async function doSignOut(){await db.auth.signOut();}
 
-    okEl.textContent = 'Account created! Check your email to confirm, then sign in.';
-    okEl.className = 'success-msg show';
-    btn.disabled = false; btn.textContent = 'Create Account';
-  }
-
-  async function handleLogin() {
-    const email    = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errEl    = document.getElementById('login-error');
-    const btn      = document.getElementById('login-btn');
-
-    errEl.className = 'error-msg';
-    if (!email || !password) { showErr(errEl, 'Email and password required.'); return; }
-
-    btn.disabled = true; btn.textContent = 'Signing in…';
-
-    const { error } = await db.auth.signInWithPassword({ email, password });
-    if (error) {
-      showErr(errEl, error.message);
-      btn.disabled = false; btn.textContent = 'Sign In';
-    }
-  }
-
-  async function signOut() {
-    await db.auth.signOut();
-    currentUser = null; currentProfile = null;
-    showLanding();
-  }
-
-  function showErr(el, msg) { el.textContent = msg; el.className = 'error-msg show'; }
-
-  // ── FEED ──────────────────────────────────────
-  async function loadFeed() {
-    const list = document.getElementById('feed-list');
-    list.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
-
-    const { data, error } = await db
-      .from('posts')
-      .select('*, profiles(display_name)')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error || !data?.length) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">No posts yet. Be the first to say something!</div></div>`;
-      return;
-    }
-
-    list.innerHTML = data.map(post => `
-      <div class="post-card">
-        <div class="post-header">
-          <div class="post-avatar">${(post.profiles?.display_name || 'U')[0].toUpperCase()}</div>
-          <div class="post-meta">
-            <div class="post-author">${esc(post.profiles?.display_name || 'Member')}</div>
-            <div class="post-time">${timeAgo(post.created_at)}</div>
-          </div>
-        </div>
-        <div class="post-body">${esc(post.body)}</div>
-        <div class="post-actions">
-          <button class="post-action-btn" onclick="likePost('${post.id}', this)">❤️ ${post.likes || 0}</button>
-        </div>
+// FEED
+async function loadFeed(){
+  const list=document.getElementById('feed-list');
+  list.innerHTML=loading();
+  const{data}=await db.from('posts').select('*,profiles(display_name,location)').order('created_at',{ascending:false}).limit(30);
+  if(!data?.length){list.innerHTML=empty('✍️','No posts yet. Be the first!');return;}
+  list.innerHTML=data.map(p=>{
+    const av=(p.profiles?.display_name||'U')[0].toUpperCase();
+    const owned=me&&p.user_id===me.id;
+    return`<div class="post-card" id="post-${p.id}">
+      <div class="post-header">
+        <div class="post-av">${av}</div>
+        <div class="post-meta"><div class="post-author">${esc(p.profiles?.display_name||'Member')}</div><div class="post-time">${timeAgo(p.created_at)} · ${esc(p.profiles?.location||'DMV')}</div></div>
+        ${owned||isAdmin?`<button class="btn-icon" onclick="deletePost('${p.id}')" style="font-size:0.8rem;padding:0.3rem 0.5rem;">🗑</button>`:''}
       </div>
-    `).join('');
-  }
-
-  async function submitPost() {
-    const input = document.getElementById('post-input');
-    const body  = input.value.trim();
-    if (!body || !currentUser) return;
-
-    const btn = document.getElementById('post-btn');
-    btn.disabled = true; btn.textContent = 'Posting…';
-
-    const { error } = await db.from('posts').insert({
-      body,
-      user_id: currentUser.id,
-      likes: 0,
-      created_at: new Date().toISOString()
-    });
-
-    btn.disabled = false; btn.textContent = 'Post';
-
-    if (!error) {
-      input.value = '';
-      toast('Posted! 🎉');
-      loadFeed();
-    } else {
-      toast('Error posting — ' + error.message);
-    }
-  }
-
-  async function likePost(postId, btn) {
-    const current = parseInt(btn.textContent.replace('❤️ ', '')) || 0;
-    await db.from('posts').update({ likes: current + 1 }).eq('id', postId);
-    btn.textContent = `❤️ ${current + 1}`;
-    btn.classList.add('liked');
-  }
-
-  // ── EVENTS ────────────────────────────────────
-  async function loadEvents() {
-    const list = document.getElementById('events-list');
-    list.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
-
-    const { data, error } = await db
-      .from('events')
-      .select('*')
-      .order('event_date', { ascending: true })
-      .limit(20);
-
-    if (error || !data?.length) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No events yet. Add the first one for the crew!</div></div>`;
-      return;
-    }
-
-    list.innerHTML = data.map(ev => {
-      const d = new Date(ev.event_date);
-      const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-      const day = d.getDate();
-      return `
-        <div class="event-card">
-          <div class="event-date-box"><span class="event-month">${mon}</span><span class="event-day">${day}</span></div>
-          <div class="event-info">
-            <div class="event-name">${esc(ev.title)}</div>
-            <div class="event-meta">📍 ${esc(ev.location || 'TBD')} · ${d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
-            <div class="event-going">Going: <strong>${ev.going || 0}</strong></div>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function openAddEvent() {
-    const title = prompt('Event name?');
-    if (!title) return;
-    const location = prompt('Location (or leave blank)?') || 'TBD';
-    const dateStr  = prompt('Date & time? (e.g. 2026-06-15T19:00)') || new Date().toISOString();
-    db.from('events').insert({
-      title,
-      location,
-      event_date: dateStr,
-      going: 0,
-      created_by: currentUser.id,
-      created_at: new Date().toISOString()
-    }).then(({ error }) => {
-      if (!error) { toast('Event added! 🎉'); loadEvents(); }
-      else toast('Error: ' + error.message);
-    });
-  }
-
-  // ── MEMBERS ───────────────────────────────────
-  async function loadMembers() {
-    const grid = document.getElementById('members-grid');
-    grid.innerHTML = '<div class="loading-center" style="grid-column:1/-1"><div class="spinner"></div></div>';
-
-    const { data, error } = await db
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(48);
-
-    if (error || !data?.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>`;
-      return;
-    }
-
-    grid.innerHTML = data.map(m => `
-      <div class="member-card">
-        <div class="member-avatar">${(m.display_name || 'U')[0].toUpperCase()}</div>
-        <div class="member-name">${esc(m.display_name || 'Member')}</div>
-        <div class="member-location">${esc(m.location || 'DMV')}</div>
+      <div class="post-body">${esc(p.body)}</div>
+      <div class="post-actions">
+        <button class="post-act" onclick="likePost('${p.id}',this)">❤️ ${p.likes||0}</button>
+        <button class="post-act">💬 Reply</button>
+        <button class="post-act">↗ Share</button>
       </div>
-    `).join('');
-  }
+    </div>`;}).join('');
+}
 
-  // ── UTILS ─────────────────────────────────────
-  function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+async function submitPost(){
+  const ta=document.getElementById('post-text');
+  const body=ta.value.trim();
+  if(!body||!me)return;
+  const btn=document.getElementById('post-btn');
+  btn.disabled=true;btn.textContent='Posting…';
+  const{error}=await db.from('posts').insert({body,user_id:me.id,likes:0,created_at:new Date().toISOString()});
+  btn.disabled=false;btn.textContent='Post';
+  if(!error){ta.value='';toast('Posted! 🎉');loadFeed();}
+  else toast('Error: '+error.message);
+}
 
-  function timeAgo(iso) {
-    const diff = Date.now() - new Date(iso).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1)  return 'just now';
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h/24)}d ago`;
-  }
+async function likePost(id,btn){
+  const n=parseInt(btn.textContent.replace('❤️ ',''))||0;
+  await db.from('posts').update({likes:n+1}).eq('id',id);
+  btn.textContent=`❤️ ${n+1}`;btn.classList.add('liked');
+}
 
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 3000);
-  }
+async function deletePost(id){
+  if(!confirm('Delete this post?'))return;
+  await db.from('posts').delete().eq('id',id);
+  document.getElementById('post-'+id)?.remove();toast('Post deleted');
+}
 
-  // ── BOOT ──────────────────────────────────────
-  init();
+// EVENTS
+async function loadEvents(){
+  const list=document.getElementById('events-list');
+  list.innerHTML=loading();
+  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(20);
+  if(!data?.length){list.innerHTML=empty('📅','No events yet. Add one!');return;}
+  list.innerHTML=data.map(ev=>renderEvent(ev)).join('');
+}
+
+function renderEvent(ev){
+  const d=new Date(ev.event_date);
+  const mon=d.toLocaleString('en-US',{month:'short'}).toUpperCase();
+  const day=d.getDate();
+  const time=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  return`<div class="event-card">
+    <div class="event-date"><span class="event-date-mon">${mon}</span><span class="event-date-day">${day}</span></div>
+    <div class="event-info"><div class="event-name">${esc(ev.title)}</div><div class="event-meta">📍 ${esc(ev.location||'TBD')} · ${time}</div><div class="event-going">👥 <strong>${ev.going||0}</strong> going</div></div>
+    <button class="going-btn" onclick="markGoing('${ev.id}',this)">Going</button>
+  </div>`;
+}
+
+async function markGoing(id,btn){
+  btn.classList.add('attending');btn.textContent='✓ Going!';
+  const{data}=await db.from('events').select('going').eq('id',id).single();
+  await db.from('events').update({going:(data?.going||0)+1}).eq('id',id);
+}
+
+async function loadSidebarEvents(){
+  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(3);
+  const el=document.getElementById('sidebar-events');
+  if(!data?.length){el.innerHTML='<div style="font-size:0.8rem;color:var(--text2);">No upcoming events</div>';return;}
+  el.innerHTML=data.map(ev=>{
+    const d=new Date(ev.event_date);
+    return`<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);"><div style="font-size:0.82rem;font-weight:500;">${esc(ev.title)}</div><div style="font-size:0.75rem;color:var(--text2);">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${esc(ev.location||'TBD')}</div></div>`;
+  }).join('');
+}
+
+function openAddEvent(){
+  const title=prompt('Event name?');if(!title)return;
+  const location=prompt('Location?')||'TBD';
+  const ds=prompt('Date & time? (e.g. 2026-06-20T19:00)');if(!ds)return;
+  db.from('events').insert({title,location,event_date:ds,going:0,created_by:me.id,created_at:new Date().toISOString()})
+    .then(({error})=>{if(!error){toast('Event added! 🎉');loadEvents();loadSidebarEvents();if(isAdmin)loadAdminEvents();}else toast('Error: '+error.message);});
+}
+
+// MEMBERS
+async function loadMembers(){
+  const grid=document.getElementById('members-grid');
+  grid.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
+  const{data}=await db.from('profiles').select('*').order('created_at',{ascending:false}).limit(48);
+  allMembers=data||[];
+  document.getElementById('member-count').textContent=`${allMembers.length} members`;
+  renderMembers(allMembers);
+}
+
+function filterMembers(){
+  const q=document.getElementById('member-search').value.toLowerCase();
+  renderMembers(allMembers.filter(m=>(m.display_name||'').toLowerCase().includes(q)||(m.location||'').toLowerCase().includes(q)));
+}
+
+function renderMembers(arr){
+  const grid=document.getElementById('members-grid');
+  if(!arr.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">'+empty('👥','No members found')+'</div>';return;}
+  grid.innerHTML=arr.map(m=>`<div class="member-card"><div class="member-av">${(m.display_name||'U')[0].toUpperCase()}</div><div class="member-name">${esc(m.display_name||'Member')}</div><div class="member-loc">${esc(m.location||'DMV')}</div>${m.is_admin?'<span class="member-badge admin-badge">Admin</span>':'<span class="member-badge">Member</span>'}</div>`).join('');
+}
+
+// ADMIN
+async function loadAdminStats(){
+  const[{count:mc},{count:pc},{count:ec}]=await Promise.all([
+    db.from('profiles').select('*',{count:'exact',head:true}),
+    db.from('posts').select('*',{count:'exact',head:true}),
+    db.from('events').select('*',{count:'exact',head:true}),
+  ]);
+  document.getElementById('a-members').textContent=mc||0;
+  document.getElementById('a-posts').textContent=pc||0;
+  document.getElementById('a-events').textContent=ec||0;
+  document.getElementById('stat-members').textContent=mc||'0';
+  document.getElementById('stat-events').textContent=ec||'0';
+}
+
+async function loadAdminMembers(){
+  const el=document.getElementById('admin-members-list');
+  el.innerHTML=loading();
+  const{data}=await db.from('profiles').select('*').order('created_at',{ascending:false}).limit(100);
+  if(!data?.length){el.innerHTML='<div class="empty-state">No members yet</div>';return;}
+  el.innerHTML=`<table class="admin-table"><thead><tr><th>Name</th><th>Location</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${
+    data.map(m=>`<tr>
+      <td><strong>${esc(m.display_name||'—')}</strong><br/><span style="font-size:0.75rem;color:var(--text2);">${esc(m.email||'')}</span></td>
+      <td>${esc(m.location||'—')}</td>
+      <td>${new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'})}</td>
+      <td><span class="status-pill ${m.is_banned?'status-banned':m.is_admin?'status-active':'status-active'}">${m.is_banned?'Banned':m.is_admin?'Admin':'Active'}</span></td>
+      <td>${!m.is_admin?`<button class="admin-act-btn red" onclick="banMember('${m.id}','${esc(m.display_name||'')}')">Ban</button>`:''}
+      <button class="admin-act-btn red" onclick="deleteMember('${m.id}')">Delete</button></td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+
+async function loadAdminPosts(){
+  const el=document.getElementById('admin-posts-list');
+  el.innerHTML=loading();
+  const{data}=await db.from('posts').select('*,profiles(display_name)').order('created_at',{ascending:false}).limit(20);
+  if(!data?.length){el.innerHTML='<div class="empty-state">No posts</div>';return;}
+  el.innerHTML=`<table class="admin-table"><thead><tr><th>Author</th><th>Content</th><th>Likes</th><th>When</th><th></th></tr></thead><tbody>${
+    data.map(p=>`<tr><td><strong>${esc(p.profiles?.display_name||'—')}</strong></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.body)}</td><td>${p.likes||0}</td><td>${timeAgo(p.created_at)}</td><td><button class="admin-act-btn red" onclick="adminDeletePost('${p.id}')">Delete</button></td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+async function loadAdminEvents(){
+  const el=document.getElementById('admin-events-list');
+  el.innerHTML=loading();
+  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(20);
+  if(!data?.length){el.innerHTML='<div class="empty-state">No events</div>';return;}
+  el.innerHTML=`<table class="admin-table"><thead><tr><th>Event</th><th>Location</th><th>Date</th><th>Going</th><th></th></tr></thead><tbody>${
+    data.map(ev=>`<tr><td><strong>${esc(ev.title)}</strong></td><td>${esc(ev.location||'—')}</td><td>${new Date(ev.event_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td><td>${ev.going||0}</td><td><button class="admin-act-btn red" onclick="adminDeleteEvent('${ev.id}')">Delete</button></td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+async function banMember(id,name){
+  if(!confirm(`Ban ${name}?`))return;
+  await db.from('profiles').update({is_banned:true}).eq('id',id);
+  toast(name+' has been banned');loadAdminMembers();
+}
+async function deleteMember(id){
+  if(!confirm('Permanently delete this member?'))return;
+  await db.from('profiles').delete().eq('id',id);
+  toast('Member deleted');loadAdminMembers();loadAdminStats();
+}
+async function adminDeletePost(id){
+  if(!confirm('Delete this post?'))return;
+  await db.from('posts').delete().eq('id',id);
+  toast('Post deleted');loadAdminPosts();loadAdminStats();
+}
+async function adminDeleteEvent(id){
+  if(!confirm('Delete this event?'))return;
+  await db.from('events').delete().eq('id',id);
+  toast('Event deleted');loadAdminEvents();loadAdminStats();
+}
+
+async function loadLandingStats(){
+  const[{count:mc},{count:ec}]=await Promise.all([
+    db.from('profiles').select('*',{count:'exact',head:true}),
+    db.from('events').select('*',{count:'exact',head:true}),
+  ]);
+  document.getElementById('stat-members').textContent=mc||'0';
+  document.getElementById('stat-events').textContent=ec||'0';
+}
+
+// UTILS
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function timeAgo(iso){const d=Math.floor((Date.now()-new Date(iso))/1000);if(d<60)return'just now';if(d<3600)return`${Math.floor(d/60)}m ago`;if(d<86400)return`${Math.floor(d/3600)}h ago`;return`${Math.floor(d/86400)}d ago`;}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.className='form-err show';}
+function showOk(id,msg){const el=document.getElementById(id);el.textContent=msg;el.className='form-ok show';}
+function clearMsg(id){const el=document.getElementById(id);el.className='form-err';el.textContent='';}
+function loading(){return'<div class="loading"><div class="spinner"></div></div>';}
+function empty(icon,text){return`<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;}
+function copyCode(){navigator.clipboard.writeText('DMV2026');toast('Invite code copied! 📋');}
+
+init();
 </script>
 </body>
 </html>
