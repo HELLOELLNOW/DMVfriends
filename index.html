@@ -454,6 +454,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- EVENT MODAL -->
+<div class="overlay" id="event-overlay">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-x" onclick="closeEventModal()">✕</button>
+    <div class="modal-logo"><div class="modal-logo-mark">📅</div><span class="modal-title">Create Event</span></div>
+    <div class="field"><label>Event Name</label><input id="ev-title" type="text" placeholder="e.g. DMV Rooftop Happy Hour"/></div>
+    <div class="field"><label>Category</label><select id="ev-category"><option value="Social">🍹 Social / Hangout</option><option value="Brunch">🍳 Brunch</option><option value="Networking">💼 Networking</option><option value="Party">🎉 Party</option><option value="Sports">⚽ Sports / Outdoors</option><option value="Food">🍽 Food / Drinks</option><option value="Culture">🎭 Arts / Culture</option><option value="Other">📌 Other</option></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Date</label><input id="ev-date" type="date"/></div>
+      <div class="field"><label>Time</label><input id="ev-time" type="time"/></div>
+    </div>
+    <div class="field"><label>Location</label><select id="ev-location-select" onchange="toggleCustomLocation(this.value)"><option value="">-- Pick a spot --</option><option value="Adams Morgan, DC">Adams Morgan, DC</option><option value="U Street, DC">U Street, DC</option><option value="Georgetown, DC">Georgetown, DC</option><option value="Capitol Hill, DC">Capitol Hill, DC</option><option value="Navy Yard, DC">Navy Yard, DC</option><option value="H Street NE, DC">H Street NE, DC</option><option value="Dupont Circle, DC">Dupont Circle, DC</option><option value="Shaw, DC">Shaw, DC</option><option value="Bethesda, MD">Bethesda, MD</option><option value="Silver Spring, MD">Silver Spring, MD</option><option value="College Park, MD">College Park, MD</option><option value="Rockville, MD">Rockville, MD</option><option value="Tysons, VA">Tysons, VA</option><option value="Arlington, VA">Arlington, VA</option><option value="Alexandria, VA">Alexandria, VA</option><option value="Reston, VA">Reston, VA</option><option value="custom">✏️ Type my own...</option></select></div>
+    <div class="field" id="ev-custom-wrap" style="display:none;"><label>Custom Location</label><input id="ev-location-custom" type="text" placeholder="Enter venue or address"/></div>
+    <div class="field"><label>Description (optional)</label><textarea id="ev-desc" placeholder="Tell people what to expect..." style="min-height:72px;"></textarea></div>
+    <div id="ev-err" class="form-err"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="ev-btn" onclick="submitEvent()">Create Event</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -644,9 +663,16 @@ function renderEvent(ev){
   const mon=d.toLocaleString('en-US',{month:'short'}).toUpperCase();
   const day=d.getDate();
   const time=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const catEmoji={'Social':'🍹','Brunch':'🍳','Networking':'💼','Party':'🎉','Sports':'⚽','Food':'🍽','Culture':'🎭','Other':'📌'};
+  const emoji=catEmoji[ev.category]||'📅';
   return`<div class="event-card">
     <div class="event-date"><span class="event-date-mon">${mon}</span><span class="event-date-day">${day}</span></div>
-    <div class="event-info"><div class="event-name">${esc(ev.title)}</div><div class="event-meta">📍 ${esc(ev.location||'TBD')} · ${time}</div><div class="event-going">👥 <strong>${ev.going||0}</strong> going</div></div>
+    <div class="event-info">
+      <div class="event-name">${emoji} ${esc(ev.title)}</div>
+      <div class="event-meta">📍 ${esc(ev.location||'TBD')} · ${time}</div>
+      ${ev.description?`<div style="font-size:0.78rem;color:var(--text2);margin-top:3px;line-height:1.4;">${esc(ev.description)}</div>`:''}
+      <div class="event-going">👥 <strong>${ev.going||0}</strong> going</div>
+    </div>
     <button class="going-btn" onclick="markGoing('${ev.id}',this)">Going</button>
   </div>`;
 }
@@ -668,12 +694,83 @@ async function loadSidebarEvents(){
 }
 
 function openAddEvent(){
-  const title=prompt('Event name?');if(!title)return;
-  const location=prompt('Location?')||'TBD';
-  const ds=prompt('Date & time? (e.g. 2026-06-20T19:00)');if(!ds)return;
-  db.from('events').insert({title,location,event_date:ds,going:0,created_by:me.id,created_at:new Date().toISOString()})
-    .then(({error})=>{if(!error){toast('Event added! 🎉');loadEvents();loadSidebarEvents();if(isAdmin)loadAdminEvents();}else toast('Error: '+error.message);});
+  // Set default date to today and time to 7pm
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('ev-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('ev-time').value='19:00';
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-desc').value='';
+  document.getElementById('ev-location-select').value='';
+  document.getElementById('ev-location-custom').value='';
+  document.getElementById('ev-custom-wrap').style.display='none';
+  document.getElementById('ev-err').className='form-err';
+  document.getElementById('ev-btn').disabled=false;
+  document.getElementById('ev-btn').textContent='Create Event';
+  document.getElementById('event-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('ev-title').focus(),100);
 }
+
+function closeEventModal(){
+  document.getElementById('event-overlay').classList.remove('open');
+}
+
+function toggleCustomLocation(val){
+  document.getElementById('ev-custom-wrap').style.display=val==='custom'?'block':'none';
+}
+
+async function submitEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  const category=document.getElementById('ev-category').value;
+  const date=document.getElementById('ev-date').value;
+  const time=document.getElementById('ev-time').value;
+  const locSel=document.getElementById('ev-location-select').value;
+  const locCustom=document.getElementById('ev-location-custom').value.trim();
+  const desc=document.getElementById('ev-desc').value.trim();
+  const errEl=document.getElementById('ev-err');
+  const btn=document.getElementById('ev-btn');
+
+  errEl.className='form-err';
+
+  if(!title){errEl.textContent='Event name is required.';errEl.className='form-err show';return;}
+  if(!date){errEl.textContent='Please pick a date.';errEl.className='form-err show';return;}
+  if(!locSel){errEl.textContent='Please pick a location.';errEl.className='form-err show';return;}
+  if(locSel==='custom'&&!locCustom){errEl.textContent='Please enter your location.';errEl.className='form-err show';return;}
+
+  const location=locSel==='custom'?locCustom:locSel;
+  const event_date=`${date}T${time||'19:00'}`;
+
+  btn.disabled=true;btn.textContent='Creating…';
+
+  const{error}=await db.from('events').insert({
+    title,
+    category,
+    location,
+    description:desc||null,
+    event_date,
+    going:0,
+    created_by:me.id,
+    created_at:new Date().toISOString()
+  });
+
+  btn.disabled=false;btn.textContent='Create Event';
+
+  if(error){
+    errEl.textContent='Error: '+error.message;
+    errEl.className='form-err show';
+  }else{
+    closeEventModal();
+    toast('Event created! 🎉');
+    loadEvents();
+    loadSidebarEvents();
+    if(isAdmin)loadAdminEvents();
+  }
+}
+
+document.getElementById('event-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('event-overlay'))closeEventModal();
+});
+
 
 // MEMBERS
 async function loadMembers(){
