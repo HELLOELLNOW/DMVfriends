@@ -451,7 +451,7 @@ const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
 const INVITE_CODE  = 'DMV2026';
 // ↓↓ PUT YOUR EMAIL HERE to get admin access ↓↓
-const ADMIN_EMAILS = ['your@email.com'];
+const ADMIN_EMAILS = ['ejohnysingh@gmail.com'];
 
 const {createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -484,7 +484,9 @@ async function init(){
 }
 
 async function setupUser(){
-  isAdmin=ADMIN_EMAILS.includes(me.email);
+  const userEmail=(me.email||'').trim().toLowerCase();
+  isAdmin=ADMIN_EMAILS.map(e=>e.trim().toLowerCase()).includes(userEmail);
+  console.log('[DMV] logged in as:',userEmail,'| isAdmin:',isAdmin);
   const{data}=await db.from('profiles').select('*').eq('id',me.id).single();
   if(!data){
     const nm=me.user_metadata?.display_name||me.email.split('@')[0];
@@ -494,13 +496,17 @@ async function setupUser(){
   }else{
     myProfile=data;
     if(data.is_admin)isAdmin=true;
+    if(isAdmin&&!data.is_admin){await db.from('profiles').update({is_admin:true}).eq('id',me.id);}
   }
-  const init=(myProfile.display_name||me.email)[0].toUpperCase();
+  const initLetter=(myProfile.display_name||me.email)[0].toUpperCase();
   const nm=myProfile.display_name||me.email;
-  document.getElementById('topbar-av').textContent=init;
+  document.getElementById('topbar-av').textContent=initLetter;
   document.getElementById('topbar-nm').textContent=nm;
-  document.getElementById('composer-av').textContent=init;
-  if(isAdmin){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
+  document.getElementById('composer-av').textContent=initLetter;
+  if(isAdmin){
+    document.querySelectorAll('.admin-only').forEach(el=>el.style.removeProperty('display'));
+    console.log('[DMV] Admin UI unlocked');
+  }
 }
 
 // PAGES
