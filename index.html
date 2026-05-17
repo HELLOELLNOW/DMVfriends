@@ -744,9 +744,7 @@ async function submitEvent(){
 
   const{error}=await db.from('events').insert({
     title,
-    category,
     location,
-    description:desc||null,
     event_date,
     going:0,
     created_by:me.id,
