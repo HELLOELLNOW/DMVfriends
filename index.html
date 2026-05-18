@@ -478,461 +478,569 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
-// ↓↓ PUT YOUR EMAIL HERE to get admin access ↓↓
 const ADMIN_EMAILS = ['ejohnysingh@gmail.com'];
 
-const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-let me=null,myProfile=null,isAdmin=false,allMembers=[];
+const {createClient} = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+let me = null, myProfile = null, isAdmin = false, allMembers = [];
 
-// INIT
-async function init(){
-  const hash=window.location.hash;
-  const params=new URLSearchParams(window.location.search);
-  if(params.get('error')){
+// ── THEME (must be first so UI is correct before anything loads)
+let theme = localStorage.getItem('dmv-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+function updateThemeBtn() {
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = theme === 'dark' ? '☀️' : '🌙';
+  const m = document.getElementById('theme-meta');
+  if (m) m.content = theme === 'dark' ? '#0f1117' : '#f5f7ff';
+}
+updateThemeBtn();
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('dmv-theme', theme);
+  updateThemeBtn();
+}
+
+// ── INIT
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error')) {
     openModal('login');
-    setTimeout(()=>showErr('l-err','Confirmation link expired. Please sign in.'),200);
-    window.history.replaceState({},'',window.location.pathname);
+    setTimeout(() => showErr('l-err', 'Confirmation link expired. Please sign in.'), 200);
+    window.history.replaceState({}, '', window.location.pathname);
     return;
   }
-  const {data:{session}}=await db.auth.getSession();
-  if(session?.user){me=session.user;await setupUser();showApp();}
-  db.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session?.user){
-      me=session.user;
-      if(window.location.hash)window.history.replaceState({},'',window.location.pathname);
-      await setupUser();showApp();toast('Welcome to DMV Friends! 🎉');
-    }else if(event==='SIGNED_OUT'){
-      me=null;myProfile=null;isAdmin=false;
+
+  // Handle email confirmation hash
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  const { data: { session } } = await db.auth.getSession();
+  if (session?.user) {
+    me = session.user;
+    await setupUser();
+    showApp();
+  }
+
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      me = session.user;
+      await setupUser();
+      showApp();
+      toast('Welcome to DMV Friends! 🎉');
+    } else if (event === 'SIGNED_OUT') {
+      me = null; myProfile = null; isAdmin = false;
       document.getElementById('page-app').classList.remove('active');
       document.getElementById('page-landing').classList.add('active');
     }
   });
+
   loadLandingStats();
+  registerSW();
 }
 
-async function setupUser(){
-  const userEmail=(me.email||'').trim().toLowerCase();
-  isAdmin=ADMIN_EMAILS.map(e=>e.trim().toLowerCase()).includes(userEmail);
-  console.log('[DMV] logged in as:',userEmail,'| isAdmin:',isAdmin);
-  const{data}=await db.from('profiles').select('*').eq('id',me.id).single();
-  if(!data){
-    const nm=me.user_metadata?.display_name||me.email.split('@')[0];
-    const loc=me.user_metadata?.location||'DMV';
-    await db.from('profiles').insert({id:me.id,display_name:nm,email:me.email,location:loc,is_admin:isAdmin,created_at:new Date().toISOString()});
-    myProfile={display_name:nm,email:me.email,location:loc,is_admin:isAdmin};
-  }else{
-    myProfile=data;
-    if(data.is_admin)isAdmin=true;
-    if(isAdmin&&!data.is_admin){await db.from('profiles').update({is_admin:true}).eq('id',me.id);}
-  }
-  const initLetter=(myProfile.display_name||me.email)[0].toUpperCase();
-  const nm=myProfile.display_name||me.email;
-  document.getElementById('topbar-av').textContent=initLetter;
-  document.getElementById('topbar-nm').textContent=nm;
-  document.getElementById('composer-av').textContent=initLetter;
-  if(isAdmin){
-    document.querySelectorAll('.admin-only').forEach(el=>el.style.removeProperty('display'));
-    console.log('[DMV] Admin UI unlocked');
+// ── SERVICE WORKER
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('[DMV] SW registered'))
+      .catch(e => console.log('[DMV] SW skipped:', e.message));
   }
 }
 
-// PAGES
-function showApp(){
+// ── PWA INSTALL BANNER
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+window.addEventListener('appinstalled', () => {
+  hideInstallBanner();
+  toast('DMV Friends installed! 🎉');
+});
+function showInstallBanner() {
+  if (document.getElementById('install-banner')) return;
+  const b = document.createElement('div');
+  b.id = 'install-banner';
+  b.style.cssText = 'position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0.875rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.2);white-space:nowrap;';
+  b.innerHTML = `<div style="font-size:1.5rem">📱</div><div><div style="font-weight:600;font-size:0.875rem;">Add to Home Screen</div><div style="font-size:0.75rem;color:var(--text2);">Install DMV Friends as an app</div></div><button onclick="doInstall()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:500;cursor:pointer;font-family:var(--font);">Install</button><button onclick="hideInstallBanner()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:0.25rem;">✕</button>`;
+  document.body.appendChild(b);
+}
+function hideInstallBanner() { document.getElementById('install-banner')?.remove(); }
+function doInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; hideInstallBanner(); });
+}
+
+// ── SETUP USER
+async function setupUser() {
+  const userEmail = (me.email || '').trim().toLowerCase();
+  isAdmin = ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail);
+
+  const { data } = await db.from('profiles').select('*').eq('id', me.id).single();
+  if (!data) {
+    const nm = me.user_metadata?.display_name || me.email.split('@')[0];
+    const loc = me.user_metadata?.location || 'DMV';
+    await db.from('profiles').insert({
+      id: me.id, display_name: nm, email: me.email,
+      location: loc, is_admin: isAdmin, created_at: new Date().toISOString()
+    });
+    myProfile = { display_name: nm, email: me.email, location: loc, is_admin: isAdmin };
+  } else {
+    myProfile = data;
+    if (data.is_admin) isAdmin = true;
+    if (isAdmin && !data.is_admin) {
+      await db.from('profiles').update({ is_admin: true }).eq('id', me.id);
+    }
+  }
+
+  const letter = (myProfile.display_name || me.email)[0].toUpperCase();
+  const nm = myProfile.display_name || me.email;
+  document.getElementById('topbar-av').textContent = letter;
+  document.getElementById('topbar-nm').textContent = nm;
+  const ca = document.getElementById('composer-av');
+  if (ca) ca.textContent = letter;
+
+  if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.removeProperty('display'));
+  }
+}
+
+// ── SHOW APP
+function showApp() {
   document.getElementById('page-landing').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
   closeModal();
-  loadFeed();loadEvents();loadMembers();loadSidebarEvents();
-  if(isAdmin){loadAdminStats();loadAdminMembers();loadAdminPosts();loadAdminEvents();}
+  loadFeed();
+  loadEvents();
+  loadMembers();
+  loadSidebarEvents();
+  if (isAdmin) { loadAdminStats(); loadAdminMembers(); loadAdminPosts(); loadAdminEvents(); }
 }
 
-// THEME
-let theme=localStorage.getItem('dmv-theme')||'dark';
-document.documentElement.setAttribute('data-theme',theme);
-function updateThemeBtn(){const b=document.getElementById('theme-btn');if(b)b.textContent=theme==='dark'?'☀️':'🌙';}
-updateThemeBtn();
-function toggleTheme(){theme=theme==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem('dmv-theme',theme);updateThemeBtn();}
-
-// NAV
-function switchPanel(panel,el){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.topbar-nav-item,.sidebar-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+panel).classList.add('active');
-  if(el)el.classList.add('active');
+// ── NAV
+function switchPanel(panel, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav-item, .sidebar-item').forEach(b => b.classList.remove('active'));
+  const tp = document.getElementById('tab-' + panel);
+  if (tp) tp.classList.add('active');
+  if (el) el.classList.add('active');
 }
 
-// MODAL
-function openModal(f){document.getElementById('auth-overlay').classList.add('open');switchForm(f);}
-function closeModal(){document.getElementById('auth-overlay').classList.remove('open');}
-function switchForm(f){document.getElementById('f-signup').style.display=f==='signup'?'block':'none';document.getElementById('f-login').style.display=f==='login'?'block':'none';}
-document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('auth-overlay'))closeModal();});
+// ── AUTH MODAL
+function openModal(f) {
+  document.getElementById('auth-overlay').classList.add('open');
+  switchForm(f);
+}
+function closeModal() { document.getElementById('auth-overlay').classList.remove('open'); }
+function switchForm(f) {
+  document.getElementById('f-signup').style.display = f === 'signup' ? 'block' : 'none';
+  document.getElementById('f-login').style.display  = f === 'login'  ? 'block' : 'none';
+}
+document.getElementById('auth-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-overlay')) closeModal();
+});
 
-// AUTH
-async function doSignup(){
-  const name=document.getElementById('s-name').value.trim();
-  const loc=document.getElementById('s-loc').value.trim();
-  const email=document.getElementById('s-email').value.trim();
-  const pass=document.getElementById('s-pass').value;
-  const age=document.getElementById('s-age').checked;
-  const btn=document.getElementById('s-btn');
-  clearMsg('s-err');clearMsg('s-ok');
-  if(!name)return showErr('s-err','Display name required.');
-  if(!email||!pass)return showErr('s-err','Email and password required.');
-  if(pass.length<8)return showErr('s-err','Password must be 8+ characters.');
-  if(!age)return showErr('s-err','You must be 21+ to join.');
-  btn.disabled=true;btn.textContent='Creating account…';
-  const{data,error}=await db.auth.signUp({email,password:pass,options:{data:{display_name:name,location:loc||'DMV'}}});
-  if(error){showErr('s-err',error.message);btn.disabled=false;btn.textContent='Create Account';return;}
-  if(data.user){await db.from('profiles').upsert({id:data.user.id,display_name:name,email,location:loc||'DMV',is_admin:false,created_at:new Date().toISOString()});}
-  showOk('s-ok','✅ Account created! Check your email to confirm, then sign in.');
-  btn.disabled=false;btn.textContent='Create Account';
+// ── SIGNUP
+async function doSignup() {
+  const name  = document.getElementById('s-name').value.trim();
+  const loc   = document.getElementById('s-loc').value.trim();
+  const email = document.getElementById('s-email').value.trim();
+  const pass  = document.getElementById('s-pass').value;
+  const age   = document.getElementById('s-age').checked;
+  const btn   = document.getElementById('s-btn');
+  clearMsg('s-err'); clearMsg('s-ok');
+
+  if (!name)         return showErr('s-err', 'Display name is required.');
+  if (!email||!pass) return showErr('s-err', 'Email and password are required.');
+  if (pass.length<8) return showErr('s-err', 'Password must be at least 8 characters.');
+  if (!age)          return showErr('s-err', 'You must confirm you are 21+.');
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  const { data, error } = await db.auth.signUp({
+    email, password: pass,
+    options: { data: { display_name: name, location: loc || 'DMV' } }
+  });
+  if (error) { showErr('s-err', error.message); btn.disabled = false; btn.textContent = 'Join DMV Friends'; return; }
+  if (data.user) {
+    await db.from('profiles').upsert({
+      id: data.user.id, display_name: name, email,
+      location: loc || 'DMV', is_admin: false, created_at: new Date().toISOString()
+    });
+  }
+  showOk('s-ok', '✅ Check your email to confirm your account, then sign in.');
+  btn.disabled = false; btn.textContent = 'Join DMV Friends';
 }
 
-async function doLogin(){
-  const email=document.getElementById('l-email').value.trim();
-  const pass=document.getElementById('l-pass').value;
-  const btn=document.getElementById('l-btn');
+// ── LOGIN
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const btn   = document.getElementById('l-btn');
   clearMsg('l-err');
-  if(!email||!pass)return showErr('l-err','Email and password required.');
-  btn.disabled=true;btn.textContent='Signing in…';
-  const{error}=await db.auth.signInWithPassword({email,password:pass});
-  if(error){showErr('l-err',error.message);btn.disabled=false;btn.textContent='Sign In';}
+  if (!email||!pass) return showErr('l-err', 'Email and password are required.');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) { showErr('l-err', error.message); btn.disabled = false; btn.textContent = 'Sign In'; }
 }
 
-async function doSignOut(){await db.auth.signOut();}
+async function doSignOut() { await db.auth.signOut(); }
 
-// FEED
-async function loadFeed(){
-  const list=document.getElementById('feed-list');
-  list.innerHTML=loading();
-  const{data}=await db.from('posts').select('*,profiles(display_name,location)').order('created_at',{ascending:false}).limit(30);
-  if(!data?.length){list.innerHTML=empty('✍️','No posts yet. Be the first!');return;}
-  list.innerHTML=data.map(p=>{
-    const av=(p.profiles?.display_name||'U')[0].toUpperCase();
-    const owned=me&&p.user_id===me.id;
-    return`<div class="post-card" id="post-${p.id}">
+// ── FEED
+async function loadFeed() {
+  const list = document.getElementById('feed-list');
+  list.innerHTML = loading();
+  const { data, error } = await db
+    .from('posts')
+    .select('*, profiles(display_name, location)')
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) { list.innerHTML = empty('⚠️', 'Error loading feed: ' + error.message); return; }
+  if (!data?.length) { list.innerHTML = empty('✍️', 'No posts yet — be the first!'); return; }
+
+  list.innerHTML = data.map(p => {
+    const av = (p.profiles?.display_name || 'U')[0].toUpperCase();
+    const owned = me && p.user_id === me.id;
+    return `<div class="post-card" id="post-${p.id}">
       <div class="post-header">
         <div class="post-av">${av}</div>
-        <div class="post-meta"><div class="post-author">${esc(p.profiles?.display_name||'Member')}</div><div class="post-time">${timeAgo(p.created_at)} · ${esc(p.profiles?.location||'DMV')}</div></div>
-        ${owned||isAdmin?`<button class="btn-icon" onclick="deletePost('${p.id}')" style="font-size:0.8rem;padding:0.3rem 0.5rem;">🗑</button>`:''}
+        <div class="post-meta">
+          <div class="post-author">${esc(p.profiles?.display_name || 'Member')}</div>
+          <div class="post-time">${timeAgo(p.created_at)} · ${esc(p.profiles?.location || 'DMV')}</div>
+        </div>
+        ${owned || isAdmin ? `<button class="btn-icon" onclick="deletePost('${p.id}')" style="font-size:0.8rem;padding:0.3rem 0.5rem;margin-left:auto;">🗑</button>` : ''}
       </div>
       <div class="post-body">${esc(p.body)}</div>
       <div class="post-actions">
-        <button class="post-act" onclick="likePost('${p.id}',this)">❤️ ${p.likes||0}</button>
+        <button class="post-act" onclick="likePost('${p.id}', this)">❤️ ${p.likes || 0}</button>
         <button class="post-act">💬 Reply</button>
         <button class="post-act">↗ Share</button>
       </div>
-    </div>`;}).join('');
-}
-
-async function submitPost(){
-  const ta=document.getElementById('post-text');
-  const body=ta.value.trim();
-  if(!body||!me)return;
-  const btn=document.getElementById('post-btn');
-  btn.disabled=true;btn.textContent='Posting…';
-  const{error}=await db.from('posts').insert({body,user_id:me.id,likes:0,created_at:new Date().toISOString()});
-  btn.disabled=false;btn.textContent='Post';
-  if(!error){ta.value='';toast('Posted! 🎉');loadFeed();}
-  else toast('Error: '+error.message);
-}
-
-async function likePost(id,btn){
-  const n=parseInt(btn.textContent.replace('❤️ ',''))||0;
-  await db.from('posts').update({likes:n+1}).eq('id',id);
-  btn.textContent=`❤️ ${n+1}`;btn.classList.add('liked');
-}
-
-async function deletePost(id){
-  if(!confirm('Delete this post?'))return;
-  await db.from('posts').delete().eq('id',id);
-  document.getElementById('post-'+id)?.remove();toast('Post deleted');
-}
-
-// EVENTS
-async function loadEvents(){
-  const list=document.getElementById('events-list');
-  list.innerHTML=loading();
-  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(20);
-  if(!data?.length){list.innerHTML=empty('📅','No events yet. Add one!');return;}
-  list.innerHTML=data.map(ev=>renderEvent(ev)).join('');
-}
-
-function renderEvent(ev){
-  const d=new Date(ev.event_date);
-  const mon=d.toLocaleString('en-US',{month:'short'}).toUpperCase();
-  const day=d.getDate();
-  const time=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  const catEmoji={'Social':'🍹','Brunch':'🍳','Networking':'💼','Party':'🎉','Sports':'⚽','Food':'🍽','Culture':'🎭','Other':'📌'};
-  const emoji=catEmoji[ev.category]||'📅';
-  return`<div class="event-card">
-    <div class="event-date"><span class="event-date-mon">${mon}</span><span class="event-date-day">${day}</span></div>
-    <div class="event-info">
-      <div class="event-name">${emoji} ${esc(ev.title)}</div>
-      <div class="event-meta">📍 ${esc(ev.location||'TBD')} · ${time}</div>
-      ${ev.description?`<div style="font-size:0.78rem;color:var(--text2);margin-top:3px;line-height:1.4;">${esc(ev.description)}</div>`:''}
-      <div class="event-going">👥 <strong>${ev.going||0}</strong> going</div>
-    </div>
-    <button class="going-btn" onclick="markGoing('${ev.id}',this)">Going</button>
-  </div>`;
-}
-
-async function markGoing(id,btn){
-  btn.classList.add('attending');btn.textContent='✓ Going!';
-  const{data}=await db.from('events').select('going').eq('id',id).single();
-  await db.from('events').update({going:(data?.going||0)+1}).eq('id',id);
-}
-
-async function loadSidebarEvents(){
-  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(3);
-  const el=document.getElementById('sidebar-events');
-  if(!data?.length){el.innerHTML='<div style="font-size:0.8rem;color:var(--text2);">No upcoming events</div>';return;}
-  el.innerHTML=data.map(ev=>{
-    const d=new Date(ev.event_date);
-    return`<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);"><div style="font-size:0.82rem;font-weight:500;">${esc(ev.title)}</div><div style="font-size:0.75rem;color:var(--text2);">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${esc(ev.location||'TBD')}</div></div>`;
+    </div>`;
   }).join('');
 }
 
-function openAddEvent(){
-  // Set default date to today and time to 7pm
-  const now=new Date();
-  const pad=n=>String(n).padStart(2,'0');
-  document.getElementById('ev-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
-  document.getElementById('ev-time').value='19:00';
-  document.getElementById('ev-title').value='';
-  document.getElementById('ev-desc').value='';
-  document.getElementById('ev-location-select').value='';
-  document.getElementById('ev-location-custom').value='';
-  document.getElementById('ev-custom-wrap').style.display='none';
-  document.getElementById('ev-err').className='form-err';
-  document.getElementById('ev-btn').disabled=false;
-  document.getElementById('ev-btn').textContent='Create Event';
-  document.getElementById('event-overlay').classList.add('open');
-  setTimeout(()=>document.getElementById('ev-title').focus(),100);
+async function submitPost() {
+  const ta  = document.getElementById('post-text');
+  const body = ta.value.trim();
+  if (!body) return toast('Write something first!');
+  if (!me)   return toast('You must be signed in.');
+  const btn = document.getElementById('post-btn');
+  btn.disabled = true; btn.textContent = 'Posting…';
+  const { error } = await db.from('posts').insert({
+    body,
+    user_id: me.id,
+    likes: 0,
+    created_at: new Date().toISOString()
+  });
+  btn.disabled = false; btn.textContent = 'Post';
+  if (!error) { ta.value = ''; toast('Posted! 🎉'); loadFeed(); }
+  else toast('Error posting: ' + error.message);
 }
 
-function closeEventModal(){
+async function likePost(id, btn) {
+  const n = parseInt(btn.textContent.replace('❤️ ', '')) || 0;
+  const { error } = await db.from('posts').update({ likes: n + 1 }).eq('id', id);
+  if (!error) { btn.textContent = `❤️ ${n + 1}`; btn.classList.add('liked'); }
+}
+
+async function deletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  const { error } = await db.from('posts').delete().eq('id', id);
+  if (!error) { document.getElementById('post-' + id)?.remove(); toast('Post deleted.'); }
+  else toast('Error: ' + error.message);
+}
+
+// ── EVENTS
+async function loadEvents() {
+  const list = document.getElementById('events-list');
+  list.innerHTML = loading();
+  const { data, error } = await db
+    .from('events')
+    .select('*')
+    .order('event_date', { ascending: true })
+    .limit(20);
+
+  if (error) { list.innerHTML = empty('⚠️', 'Error loading events: ' + error.message); return; }
+  if (!data?.length) { list.innerHTML = empty('📅', 'No events yet — add one!'); return; }
+  list.innerHTML = data.map(ev => renderEvent(ev)).join('');
+}
+
+function renderEvent(ev) {
+  const d   = new Date(ev.event_date);
+  const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  const day = d.getDate();
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const catEmoji = { Social:'🍹', Brunch:'🍳', Networking:'💼', Party:'🎉', Sports:'⚽', Food:'🍽', Culture:'🎭', Other:'📌' };
+  const emoji = catEmoji[ev.category] || '📅';
+  return `<div class="event-card">
+    <div class="event-date">
+      <span class="event-date-mon">${mon}</span>
+      <span class="event-date-day">${day}</span>
+    </div>
+    <div class="event-info">
+      <div class="event-name">${emoji} ${esc(ev.title)}</div>
+      <div class="event-meta">📍 ${esc(ev.location || 'TBD')} · ${time}</div>
+      ${ev.description ? `<div style="font-size:0.78rem;color:var(--text2);margin-top:3px;line-height:1.4;">${esc(ev.description)}</div>` : ''}
+      <div class="event-going">👥 <strong>${ev.going || 0}</strong> going</div>
+    </div>
+    <button class="going-btn" onclick="markGoing('${ev.id}', this)">Going</button>
+  </div>`;
+}
+
+async function markGoing(id, btn) {
+  btn.disabled = true;
+  const { data } = await db.from('events').select('going').eq('id', id).single();
+  const { error } = await db.from('events').update({ going: (data?.going || 0) + 1 }).eq('id', id);
+  if (!error) { btn.textContent = '✓ Going!'; btn.classList.add('attending'); }
+  else { btn.disabled = false; toast('Error: ' + error.message); }
+}
+
+async function loadSidebarEvents() {
+  const el = document.getElementById('sidebar-events');
+  const { data } = await db.from('events').select('*').order('event_date', { ascending: true }).limit(3);
+  if (!data?.length) { el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);">No upcoming events</div>'; return; }
+  el.innerHTML = data.map(ev => {
+    const d = new Date(ev.event_date);
+    return `<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:0.82rem;font-weight:500;">${esc(ev.title)}</div>
+      <div style="font-size:0.75rem;color:var(--text2);">${d.toLocaleDateString('en-US', { month:'short', day:'numeric' })} · ${esc(ev.location || 'TBD')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── EVENT MODAL
+function openAddEvent() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('ev-title').value = '';
+  document.getElementById('ev-date').value  = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('ev-time').value  = '19:00';
+  document.getElementById('ev-desc').value  = '';
+  document.getElementById('ev-location-select').value = '';
+  document.getElementById('ev-location-custom').value = '';
+  document.getElementById('ev-custom-wrap').style.display = 'none';
+  document.getElementById('ev-err').className = 'form-err';
+  const btn = document.getElementById('ev-btn');
+  btn.disabled = false; btn.textContent = 'Create Event';
+  document.getElementById('event-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('ev-title').focus(), 100);
+}
+
+function closeEventModal() {
   document.getElementById('event-overlay').classList.remove('open');
 }
 
-function toggleCustomLocation(val){
-  document.getElementById('ev-custom-wrap').style.display=val==='custom'?'block':'none';
+function toggleCustomLocation(val) {
+  document.getElementById('ev-custom-wrap').style.display = val === 'custom' ? 'block' : 'none';
 }
 
-async function submitEvent(){
-  const title=document.getElementById('ev-title').value.trim();
-  const category=document.getElementById('ev-category').value;
-  const date=document.getElementById('ev-date').value;
-  const time=document.getElementById('ev-time').value;
-  const locSel=document.getElementById('ev-location-select').value;
-  const locCustom=document.getElementById('ev-location-custom').value.trim();
-  const desc=document.getElementById('ev-desc').value.trim();
-  const errEl=document.getElementById('ev-err');
-  const btn=document.getElementById('ev-btn');
+async function submitEvent() {
+  const title   = document.getElementById('ev-title').value.trim();
+  const date    = document.getElementById('ev-date').value;
+  const time    = document.getElementById('ev-time').value || '19:00';
+  const locSel  = document.getElementById('ev-location-select').value;
+  const locCust = document.getElementById('ev-location-custom').value.trim();
+  const desc    = document.getElementById('ev-desc').value.trim();
+  const errEl   = document.getElementById('ev-err');
+  const btn     = document.getElementById('ev-btn');
 
-  errEl.className='form-err';
+  errEl.className = 'form-err';
+  if (!title)                          { errEl.textContent = 'Event name is required.';    errEl.className = 'form-err show'; return; }
+  if (!date)                           { errEl.textContent = 'Please pick a date.';         errEl.className = 'form-err show'; return; }
+  if (!locSel)                         { errEl.textContent = 'Please pick a location.';     errEl.className = 'form-err show'; return; }
+  if (locSel === 'custom' && !locCust) { errEl.textContent = 'Please type your location.';  errEl.className = 'form-err show'; return; }
 
-  if(!title){errEl.textContent='Event name is required.';errEl.className='form-err show';return;}
-  if(!date){errEl.textContent='Please pick a date.';errEl.className='form-err show';return;}
-  if(!locSel){errEl.textContent='Please pick a location.';errEl.className='form-err show';return;}
-  if(locSel==='custom'&&!locCustom){errEl.textContent='Please enter your location.';errEl.className='form-err show';return;}
+  const location   = locSel === 'custom' ? locCust : locSel;
+  const event_date = `${date}T${time}`;
 
-  const location=locSel==='custom'?locCustom:locSel;
-  const event_date=`${date}T${time||'19:00'}`;
+  btn.disabled = true; btn.textContent = 'Creating…';
 
-  btn.disabled=true;btn.textContent='Creating…';
-
-  const{error}=await db.from('events').insert({
+  const { error } = await db.from('events').insert({
     title,
     location,
     event_date,
-    going:0,
-    created_by:me.id,
-    created_at:new Date().toISOString()
+    going: 0,
+    created_by: me.id,
+    created_at: new Date().toISOString()
   });
 
-  btn.disabled=false;btn.textContent='Create Event';
+  btn.disabled = false; btn.textContent = 'Create Event';
 
-  if(error){
-    errEl.textContent='Error: '+error.message;
-    errEl.className='form-err show';
-  }else{
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.className = 'form-err show';
+  } else {
     closeEventModal();
     toast('Event created! 🎉');
     loadEvents();
     loadSidebarEvents();
-    if(isAdmin)loadAdminEvents();
+    if (isAdmin) loadAdminEvents();
   }
 }
 
-document.getElementById('event-overlay').addEventListener('click',e=>{
-  if(e.target===document.getElementById('event-overlay'))closeEventModal();
+document.getElementById('event-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('event-overlay')) closeEventModal();
 });
 
-
-// MEMBERS
-async function loadMembers(){
-  const grid=document.getElementById('members-grid');
-  grid.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
-  const{data}=await db.from('profiles').select('*').order('created_at',{ascending:false}).limit(48);
-  allMembers=data||[];
-  document.getElementById('member-count').textContent=`${allMembers.length} members`;
+// ── MEMBERS
+async function loadMembers() {
+  const grid = document.getElementById('members-grid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
+  const { data, error } = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(48);
+  if (error) { grid.innerHTML = empty('⚠️', 'Error: ' + error.message); return; }
+  allMembers = data || [];
+  const mc = document.getElementById('member-count');
+  if (mc) mc.textContent = `${allMembers.length} members`;
   renderMembers(allMembers);
 }
 
-function filterMembers(){
-  const q=document.getElementById('member-search').value.toLowerCase();
-  renderMembers(allMembers.filter(m=>(m.display_name||'').toLowerCase().includes(q)||(m.location||'').toLowerCase().includes(q)));
+function filterMembers() {
+  const q = document.getElementById('member-search').value.toLowerCase();
+  renderMembers(allMembers.filter(m =>
+    (m.display_name||'').toLowerCase().includes(q) ||
+    (m.location||'').toLowerCase().includes(q)
+  ));
 }
 
-function renderMembers(arr){
-  const grid=document.getElementById('members-grid');
-  if(!arr.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">'+empty('👥','No members found')+'</div>';return;}
-  grid.innerHTML=arr.map(m=>`<div class="member-card"><div class="member-av">${(m.display_name||'U')[0].toUpperCase()}</div><div class="member-name">${esc(m.display_name||'Member')}</div><div class="member-loc">${esc(m.location||'DMV')}</div>${m.is_admin?'<span class="member-badge admin-badge">Admin</span>':'<span class="member-badge">Member</span>'}</div>`).join('');
+function renderMembers(arr) {
+  const grid = document.getElementById('members-grid');
+  if (!arr.length) { grid.innerHTML = empty('👥', 'No members found.'); return; }
+  grid.innerHTML = arr.map(m => `
+    <div class="member-card">
+      <div class="member-av">${(m.display_name||'U')[0].toUpperCase()}</div>
+      <div class="member-name">${esc(m.display_name || 'Member')}</div>
+      <div class="member-loc">${esc(m.location || 'DMV')}</div>
+      ${m.is_admin ? '<span class="member-badge admin-badge">Admin</span>' : '<span class="member-badge">Member</span>'}
+    </div>`).join('');
 }
 
-// ADMIN
-async function loadAdminStats(){
-  const[{count:mc},{count:pc},{count:ec}]=await Promise.all([
-    db.from('profiles').select('*',{count:'exact',head:true}),
-    db.from('posts').select('*',{count:'exact',head:true}),
-    db.from('events').select('*',{count:'exact',head:true}),
+// ── ADMIN
+async function loadAdminStats() {
+  const [{ count: mc }, { count: pc }, { count: ec }] = await Promise.all([
+    db.from('profiles').select('*', { count: 'exact', head: true }),
+    db.from('posts').select('*', { count: 'exact', head: true }),
+    db.from('events').select('*', { count: 'exact', head: true }),
   ]);
-  document.getElementById('a-members').textContent=mc||0;
-  document.getElementById('a-posts').textContent=pc||0;
-  document.getElementById('a-events').textContent=ec||0;
-  document.getElementById('stat-members').textContent=mc||'0';
-  document.getElementById('stat-events').textContent=ec||'0';
+  document.getElementById('a-members').textContent = mc || 0;
+  document.getElementById('a-posts').textContent   = pc || 0;
+  document.getElementById('a-events').textContent  = ec || 0;
 }
 
-async function loadAdminMembers(){
-  const el=document.getElementById('admin-members-list');
-  el.innerHTML=loading();
-  const{data}=await db.from('profiles').select('*').order('created_at',{ascending:false}).limit(100);
-  if(!data?.length){el.innerHTML='<div class="empty-state">No members yet</div>';return;}
-  el.innerHTML=`<table class="admin-table"><thead><tr><th>Name</th><th>Location</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${
-    data.map(m=>`<tr>
+async function loadAdminMembers() {
+  const el = document.getElementById('admin-members-list');
+  el.innerHTML = loading();
+  const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!data?.length) { el.innerHTML = empty('👥', 'No members yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Name</th><th>Location</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(m => `<tr>
       <td><strong>${esc(m.display_name||'—')}</strong><br/><span style="font-size:0.75rem;color:var(--text2);">${esc(m.email||'')}</span></td>
       <td>${esc(m.location||'—')}</td>
       <td>${new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'})}</td>
       <td><span class="status-pill ${m.is_banned?'status-banned':m.is_admin?'status-active':'status-active'}">${m.is_banned?'Banned':m.is_admin?'Admin':'Active'}</span></td>
-      <td>${!m.is_admin?`<button class="admin-act-btn red" onclick="banMember('${m.id}','${esc(m.display_name||'')}')">Ban</button>`:''}
-      <button class="admin-act-btn red" onclick="deleteMember('${m.id}')">Delete</button></td>
-    </tr>`).join('')
-  }</tbody></table>`;
+      <td>
+        ${!m.is_admin ? `<button class="admin-act-btn red" onclick="banMember('${m.id}','${esc(m.display_name||'')}')">Ban</button>` : ''}
+        <button class="admin-act-btn red" onclick="deleteMember('${m.id}')">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
 }
 
-async function loadAdminPosts(){
-  const el=document.getElementById('admin-posts-list');
-  el.innerHTML=loading();
-  const{data}=await db.from('posts').select('*,profiles(display_name)').order('created_at',{ascending:false}).limit(20);
-  if(!data?.length){el.innerHTML='<div class="empty-state">No posts</div>';return;}
-  el.innerHTML=`<table class="admin-table"><thead><tr><th>Author</th><th>Content</th><th>Likes</th><th>When</th><th></th></tr></thead><tbody>${
-    data.map(p=>`<tr><td><strong>${esc(p.profiles?.display_name||'—')}</strong></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.body)}</td><td>${p.likes||0}</td><td>${timeAgo(p.created_at)}</td><td><button class="admin-act-btn red" onclick="adminDeletePost('${p.id}')">Delete</button></td></tr>`).join('')
-  }</tbody></table>`;
+async function loadAdminPosts() {
+  const el = document.getElementById('admin-posts-list');
+  el.innerHTML = loading();
+  const { data } = await db.from('posts').select('*, profiles(display_name)').order('created_at', { ascending: false }).limit(20);
+  if (!data?.length) { el.innerHTML = empty('📝', 'No posts yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Author</th><th>Content</th><th>Likes</th><th>When</th><th></th></tr></thead>
+    <tbody>${data.map(p => `<tr>
+      <td><strong>${esc(p.profiles?.display_name||'—')}</strong></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.body)}</td>
+      <td>${p.likes||0}</td>
+      <td>${timeAgo(p.created_at)}</td>
+      <td><button class="admin-act-btn red" onclick="adminDeletePost('${p.id}')">Delete</button></td>
+    </tr>`).join('')}</tbody></table>`;
 }
 
-async function loadAdminEvents(){
-  const el=document.getElementById('admin-events-list');
-  el.innerHTML=loading();
-  const{data}=await db.from('events').select('*').order('event_date',{ascending:true}).limit(20);
-  if(!data?.length){el.innerHTML='<div class="empty-state">No events</div>';return;}
-  el.innerHTML=`<table class="admin-table"><thead><tr><th>Event</th><th>Location</th><th>Date</th><th>Going</th><th></th></tr></thead><tbody>${
-    data.map(ev=>`<tr><td><strong>${esc(ev.title)}</strong></td><td>${esc(ev.location||'—')}</td><td>${new Date(ev.event_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td><td>${ev.going||0}</td><td><button class="admin-act-btn red" onclick="adminDeleteEvent('${ev.id}')">Delete</button></td></tr>`).join('')
-  }</tbody></table>`;
+async function loadAdminEvents() {
+  const el = document.getElementById('admin-events-list');
+  el.innerHTML = loading();
+  const { data } = await db.from('events').select('*').order('event_date', { ascending: true }).limit(20);
+  if (!data?.length) { el.innerHTML = empty('📅', 'No events yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Event</th><th>Location</th><th>Date</th><th>Going</th><th></th></tr></thead>
+    <tbody>${data.map(ev => `<tr>
+      <td><strong>${esc(ev.title)}</strong></td>
+      <td>${esc(ev.location||'—')}</td>
+      <td>${new Date(ev.event_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+      <td>${ev.going||0}</td>
+      <td><button class="admin-act-btn red" onclick="adminDeleteEvent('${ev.id}')">Delete</button></td>
+    </tr>`).join('')}</tbody></table>`;
 }
 
-async function banMember(id,name){
-  if(!confirm(`Ban ${name}?`))return;
-  await db.from('profiles').update({is_banned:true}).eq('id',id);
-  toast(name+' has been banned');loadAdminMembers();
-}
-async function deleteMember(id){
-  if(!confirm('Permanently delete this member?'))return;
-  await db.from('profiles').delete().eq('id',id);
-  toast('Member deleted');loadAdminMembers();loadAdminStats();
-}
-async function adminDeletePost(id){
-  if(!confirm('Delete this post?'))return;
-  await db.from('posts').delete().eq('id',id);
-  toast('Post deleted');loadAdminPosts();loadAdminStats();
-}
-async function adminDeleteEvent(id){
-  if(!confirm('Delete this event?'))return;
-  await db.from('events').delete().eq('id',id);
-  toast('Event deleted');loadAdminEvents();loadAdminStats();
+async function banMember(id, name) {
+  if (!confirm(`Ban ${name}?`)) return;
+  const { error } = await db.from('profiles').update({ is_banned: true }).eq('id', id);
+  if (!error) { toast(name + ' has been banned.'); loadAdminMembers(); }
+  else toast('Error: ' + error.message);
 }
 
-async function loadLandingStats(){
-  const[{count:mc},{count:ec}]=await Promise.all([
-    db.from('profiles').select('*',{count:'exact',head:true}),
-    db.from('events').select('*',{count:'exact',head:true}),
+async function deleteMember(id) {
+  if (!confirm('Permanently delete this member?')) return;
+  const { error } = await db.from('profiles').delete().eq('id', id);
+  if (!error) { toast('Member deleted.'); loadAdminMembers(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+async function adminDeletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  const { error } = await db.from('posts').delete().eq('id', id);
+  if (!error) { toast('Post deleted.'); loadAdminPosts(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+async function adminDeleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  const { error } = await db.from('events').delete().eq('id', id);
+  if (!error) { toast('Event deleted.'); loadAdminEvents(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+// ── LANDING STATS
+async function loadLandingStats() {
+  const [{ count: mc }, { count: ec }] = await Promise.all([
+    db.from('profiles').select('*', { count: 'exact', head: true }),
+    db.from('events').select('*', { count: 'exact', head: true }),
   ]);
-  document.getElementById('stat-members').textContent=mc||'0';
-  document.getElementById('stat-events').textContent=ec||'0';
+  const sm = document.getElementById('stat-members');
+  const se = document.getElementById('stat-events');
+  if (sm) sm.textContent = mc || '0';
+  if (se) se.textContent = ec || '0';
 }
 
-// UTILS
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function timeAgo(iso){const d=Math.floor((Date.now()-new Date(iso))/1000);if(d<60)return'just now';if(d<3600)return`${Math.floor(d/60)}m ago`;if(d<86400)return`${Math.floor(d/3600)}h ago`;return`${Math.floor(d/86400)}d ago`;}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
-function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.className='form-err show';}
-function showOk(id,msg){const el=document.getElementById(id);el.textContent=msg;el.className='form-ok show';}
-function clearMsg(id){const el=document.getElementById(id);el.className='form-err';el.textContent='';}
-function loading(){return'<div class="loading"><div class="spinner"></div></div>';}
-function empty(icon,text){return`<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;}
-
-// ── SERVICE WORKER
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("/sw.js")
-      .then(r=>console.log("[DMV] SW registered",r.scope))
-      .catch(e=>console.log("[DMV] SW failed",e));
-  });
+// ── UTILS
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function timeAgo(iso) {
+  const d = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (d < 60)    return 'just now';
+  if (d < 3600)  return `${Math.floor(d/60)}m ago`;
+  if (d < 86400) return `${Math.floor(d/3600)}h ago`;
+  return `${Math.floor(d/86400)}d ago`;
 }
-
-// ── PWA INSTALL BANNER
-let deferredPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  showInstallBanner();
-});
-window.addEventListener("appinstalled",()=>{
-  hideInstallBanner();
-  toast("DMV Friends installed! Find it on your home screen 🎉");
-});
-
-function showInstallBanner(){
-  if(document.getElementById("install-banner"))return;
-  const banner=document.createElement("div");
-  banner.id="install-banner";
-  banner.style.cssText="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0.875rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.2);white-space:nowrap;animation:slideUp 0.4s ease both;";
-  banner.innerHTML=`<div style="font-size:1.5rem">📱</div><div><div style="font-weight:600;font-size:0.875rem;">Add to Home Screen</div><div style="font-size:0.75rem;color:var(--text2);">Install DMV Friends as an app</div></div><button onclick="doInstall()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:500;cursor:pointer;font-family:var(--font);">Install</button><button onclick="hideInstallBanner()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:0.25rem;">✕</button>`;
-  document.body.appendChild(banner);
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
-
-function hideInstallBanner(){
-  const b=document.getElementById("install-banner");
-  if(b)b.remove();
-}
-
-function doInstall(){
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(c=>{
-    if(c.outcome==="accepted")toast("Installing DMV Friends...");
-    deferredPrompt=null;
-    hideInstallBanner();
-  });
-}
-
-// Sync theme-color meta with dark/light toggle
-const origToggle=toggleTheme;
-window.toggleTheme=function(){
-  origToggle();
-  document.getElementById("theme-meta").content=theme==="dark"?"#0f1117":"#f5f7ff";
-};
+function showErr(id, msg)  { const el = document.getElementById(id); el.textContent = msg; el.className = 'form-err show'; }
+function showOk(id, msg)   { const el = document.getElementById(id); el.textContent = msg; el.className = 'form-ok show'; }
+function clearMsg(id)      { const el = document.getElementById(id); el.className = 'form-err'; el.textContent = ''; }
+function loading()         { return '<div class="loading"><div class="spinner"></div></div>'; }
+function empty(icon, text) { return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`; }
 
 init();
 </script>
