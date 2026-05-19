@@ -2,12 +2,15 @@
   "name": "DMV Friends",
   "short_name": "DMV Friends",
   "description": "21+ private community for DC, Maryland & Virginia",
-  "start_url": "/",
+  "start_url": "/app.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f1117",
   "theme_color": "#0f1117",
-  "categories": ["social", "lifestyle"],
+  "categories": [
+    "social",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "https://ui-avatars.com/api/?name=D&size=192&background=2563eb&color=fff&bold=true&font-size=0.5&rounded=false",
@@ -27,15 +30,25 @@
       "name": "Feed",
       "short_name": "Feed",
       "description": "View community feed",
-      "url": "/?tab=feed",
-      "icons": [{ "src": "https://ui-avatars.com/api/?name=F&size=96&background=2563eb&color=fff", "sizes": "96x96" }]
+      "url": "/app.html?tab=feed",
+      "icons": [
+        {
+          "src": "https://ui-avatars.com/api/?name=F&size=96&background=2563eb&color=fff",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Events",
       "short_name": "Events",
       "description": "Browse upcoming events",
-      "url": "/?tab=events",
-      "icons": [{ "src": "https://ui-avatars.com/api/?name=E&size=96&background=2563eb&color=fff", "sizes": "96x96" }]
+      "url": "/app.html?tab=events",
+      "icons": [
+        {
+          "src": "https://ui-avatars.com/api/?name=E&size=96&background=2563eb&color=fff",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
   "screenshots": [
