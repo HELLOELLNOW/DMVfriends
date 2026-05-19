@@ -1,770 +1,1192 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>DMV Friends — Find Your People in DC, Maryland & Virginia</title>
-<meta name="description" content="DMV Friends connects young professionals, newcomers, and locals across DC, Maryland, and Virginia through real events and genuine community. Free to join, 21+."/>
-<meta property="og:title" content="DMV Friends — Find Your People in the DMV"/>
-<meta property="og:description" content="Real connections. Local events. Your people. DC · MD · VA"/>
-<meta property="og:image" content="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=1200&q=80"/>
+<meta name="theme-color" content="#0f1117" id="theme-meta"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DMV Friends"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<meta name="description" content="DMV Friends — 21+ private community for DC, Maryland and Virginia."/>
+<meta property="og:title" content="DMV Friends"/>
+<meta property="og:description" content="21+ private community for DC · MD · VA"/>
+<meta property="og:image" content="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=1200&q=80&fit=crop"/>
 <meta property="og:url" content="https://dmvfriends.com"/>
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DMV Friends — 21+ Private Community</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── RESET & BASE ── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8F4;color:#1A1714;overflow-x:hidden;line-height:1.6}
-img{display:block;max-width:100%}
-a{text-decoration:none}
-::selection{background:#C4502A;color:#fff}
-
-/* ── TOKENS ── */
 :root{
-  --ink:#1A1714;--ink2:#3D3830;--ink3:#5C5650;--muted:#7A7268;
-  --bg:#FAF8F4;--bg2:#F0EDE8;--white:#ffffff;
-  --terra:#C4502A;--terra2:#A83E20;--terra-light:rgba(196,80,42,0.1);
-  --gold:#E8A832;--gold-light:rgba(232,168,50,0.12);
-  --sage:#4A6B5B;
-  --border:rgba(26,23,20,0.08);
-  --shadow:0 2px 16px rgba(0,0,0,0.06);
-  --shadow-lg:0 12px 48px rgba(0,0,0,0.12);
-  --serif:'Playfair Display',Georgia,serif;
-  --sans:'Plus Jakarta Sans',sans-serif;
-  --r:12px;--r-lg:18px;--r-xl:24px;
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-light:rgba(37,99,235,0.1);
+  --gold:#f59e0b;--gold-light:rgba(245,158,11,0.12);
+  --danger:#ef4444;--success:#10b981;
+  --radius:14px;--radius-sm:8px;--radius-full:9999px;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.14);
+  --font:'Sora',sans-serif;--font-serif:'Fraunces',serif;--t:0.2s ease;
 }
+[data-theme="dark"]{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;
+  --surface:#1a2033;--surface2:#222a3e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f4ff;--text2:#8892b0;--text3:#3d4a68;
+}
+[data-theme="light"]{
+  --bg:#f5f7ff;--bg2:#ffffff;--bg3:#eef1ff;
+  --surface:#ffffff;--surface2:#f0f4ff;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --text:#0f1117;--text2:#4a5568;--text3:#a0aec0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5;transition:background var(--t),color var(--t);}
 
-/* ── REVEAL ANIMATION ── */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.reveal[data-delay="1"]{transition-delay:80ms}
-.reveal[data-delay="2"]{transition-delay:160ms}
-.reveal[data-delay="3"]{transition-delay:240ms}
-.reveal[data-delay="4"]{transition-delay:320ms}
-.reveal[data-delay="5"]{transition-delay:400ms}
+/* PAGES */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
 
-/* ── NAV ── */
-#nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 2rem;height:64px;
-  transition:all 0.3s ease;
-}
-#nav.scrolled{
-  background:rgba(250,248,244,0.94);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-  box-shadow:0 2px 20px rgba(0,0,0,0.05);
-}
-.nav-brand{display:flex;align-items:center;gap:10px}
-.nav-logo{
-  width:36px;height:36px;background:var(--terra);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-style:italic;font-size:1.1rem;color:#fff;font-weight:700;
-}
-.nav-name{font-weight:700;font-size:0.95rem;color:var(--ink);letter-spacing:-0.01em}
-.nav-links{display:flex;align-items:center;gap:2px}
-.nav-link{
-  padding:8px 14px;font-size:0.85rem;font-weight:500;
-  color:var(--ink2);border-radius:8px;transition:all 0.18s;
-}
-.nav-link:hover{background:var(--bg2);color:var(--ink)}
-.nav-cta{
-  background:var(--terra);color:#fff;
-  padding:10px 22px;border-radius:10px;
-  font-size:0.875rem;font-weight:700;letter-spacing:-0.01em;
-  box-shadow:0 2px 12px rgba(196,80,42,0.35);
-  transition:all 0.2s;
-}
-.nav-cta:hover{background:var(--terra2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(196,80,42,0.4)}
+/* ── LANDING ── */
+#page-landing{position:relative;overflow:hidden;}
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:4rem 3.5rem 4rem 4rem;position:relative;z-index:2;background:var(--bg);}
+.hero-logo{display:flex;align-items:center;gap:10px;margin-bottom:3.5rem;}
+.hero-logo-mark{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:1.1rem;color:#fff;}
+.hero-logo-text{font-weight:600;font-size:1rem;letter-spacing:-0.01em;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);border:1px solid rgba(245,158,11,0.25);color:var(--gold);border-radius:var(--radius-full);padding:5px 14px;font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1.5rem;}
+.hero-title{font-family:var(--font-serif);font-size:clamp(2rem,3.5vw,3rem);font-weight:600;line-height:1.15;letter-spacing:-0.02em;margin-bottom:1rem;}
+.hero-title em{font-style:italic;color:var(--accent);}
+.hero-sub{color:var(--text2);font-size:1rem;line-height:1.7;margin-bottom:2.5rem;font-weight:300;max-width:380px;}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+.hero-right{position:relative;overflow:hidden;}
+.hero-img-stack{position:absolute;inset:0;display:grid;grid-template-rows:55% 45%;gap:3px;}
+.hero-img{width:100%;height:100%;object-fit:cover;display:block;}
+.hero-img-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--bg) 0%,transparent 30%),linear-gradient(to top,var(--bg) 0%,transparent 25%);}
+.hero-stats{position:absolute;bottom:2rem;right:2rem;left:2rem;display:flex;gap:12px;z-index:3;}
+.hero-stat{flex:1;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius);padding:1rem;text-align:center;}
+[data-theme="light"] .hero-stat{background:rgba(255,255,255,0.85);border-color:rgba(0,0,0,0.1);}
+.hero-stat-num{font-family:var(--font-serif);font-size:1.6rem;font-weight:600;line-height:1;margin-bottom:2px;}
+.hero-stat-label{font-size:0.72rem;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
 
-/* ── HERO ── */
-#hero{
-  min-height:100vh;background:var(--bg);
-  display:grid;grid-template-columns:1fr 1fr;
-  padding-top:64px;position:relative;overflow:hidden;
-}
-.hero-left{
-  display:flex;flex-direction:column;justify-content:center;
-  padding:4rem 3rem 4rem 5rem;
-  position:relative;z-index:2;
-}
-.hero-tags{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;opacity:0;animation:fadeUp 0.7s 0.1s ease forwards}
-.hero-tag{
-  background:var(--ink);color:var(--bg);
-  font-size:0.68rem;font-weight:700;
-  padding:4px 9px;border-radius:6px;
-  letter-spacing:0.06em;
-}
-.hero-tag-sub{font-size:0.78rem;color:var(--muted);font-weight:500}
-.hero-h1{
-  font-family:var(--serif);
-  font-size:clamp(2.6rem,4.5vw,4rem);
-  line-height:1.1;letter-spacing:-0.025em;
-  color:var(--ink);margin-bottom:1.5rem;font-weight:900;
-  opacity:0;animation:fadeUp 0.7s 0.2s ease forwards;
-}
-.hero-h1 em{font-style:italic;color:var(--terra)}
-.hero-sub{
-  font-size:1.05rem;line-height:1.75;color:var(--ink3);
-  max-width:420px;margin-bottom:2.5rem;font-weight:300;
-  opacity:0;animation:fadeUp 0.7s 0.3s ease forwards;
-}
-.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:3rem;opacity:0;animation:fadeUp 0.7s 0.4s ease forwards}
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:14px 28px;border-radius:var(--r);
-  font-family:var(--sans);font-size:1rem;font-weight:700;
-  cursor:pointer;border:none;letter-spacing:-0.01em;
-  transition:all 0.2s;
-}
-.btn-primary{background:var(--terra);color:#fff;box-shadow:0 4px 20px rgba(196,80,42,0.35)}
-.btn-primary:hover{background:var(--terra2);transform:translateY(-2px);box-shadow:0 8px 28px rgba(196,80,42,0.4)}
-.btn-outline{background:transparent;color:var(--ink);border:1.5px solid rgba(26,23,20,0.18)}
-.btn-outline:hover{border-color:var(--ink);background:var(--white)}
-.btn-white{background:#fff;color:var(--terra);box-shadow:0 4px 20px rgba(0,0,0,0.15)}
-.btn-white:hover{background:#f5f0ed;transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.2)}
-.btn-ghost-white{background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.25)}
-.btn-ghost-white:hover{background:rgba(255,255,255,0.18)}
-.btn-dark{background:var(--ink);color:var(--bg)}
-.btn-dark:hover{background:#2E2924;transform:translateY(-1px)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0.7rem 1.5rem;border-radius:var(--radius-sm);font-family:var(--font);font-size:0.875rem;font-weight:500;cursor:pointer;border:none;transition:all var(--t);text-decoration:none;white-space:nowrap;letter-spacing:-0.01em;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,0.35);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{opacity:0.85;}
+.btn-sm{padding:0.45rem 1rem;font-size:0.8rem;}
+.btn-icon{padding:0.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;transition:all var(--t);}
+.btn-icon:hover{color:var(--text);border-color:var(--border2);}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none!important;}
 
-.hero-proof{display:flex;align-items:center;gap:16px;opacity:0;animation:fadeUp 0.7s 0.5s ease forwards}
-.avatars{display:flex}
-.av{
-  width:38px;height:38px;border-radius:50%;
-  border:2.5px solid var(--bg);
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.78rem;font-weight:800;margin-left:-10px;
-}
-.av:first-child{margin-left:0}
-.proof-text strong{font-size:0.85rem;font-weight:700;color:var(--ink);display:block}
-.proof-text span{font-size:0.78rem;color:var(--muted)}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:1.5rem;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2.25rem;width:100%;max-width:440px;position:relative;animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both;}
+.modal-x{position:absolute;top:1.25rem;right:1.25rem;background:var(--surface2);border:none;border-radius:50%;width:32px;height:32px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all var(--t);}
+.modal-x:hover{color:var(--text);background:var(--bg3);}
+.modal-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.modal-logo-mark{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:1rem;color:#fff;}
+.modal-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.78rem;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:0.01em;}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 0.9rem;color:var(--text);font-family:var(--font);font-size:0.9rem;outline:none;transition:border-color var(--t);}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3);}
+.age-check{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.age-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.age-check label{font-size:0.85rem;color:var(--text2);cursor:pointer;}
+.auth-switch{text-align:center;font-size:0.83rem;color:var(--text2);margin-top:1.25rem;}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:500;}
+.form-err{color:var(--danger);font-size:0.82rem;margin-top:0.6rem;display:none;}
+.form-err.show{display:block;}
+.form-ok{color:var(--success);font-size:0.82rem;margin-top:0.6rem;display:none;}
+.form-ok.show{display:block;}
 
-/* Hero right */
-.hero-right{position:relative;overflow:hidden}
-.hero-img-grid{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px}
-.hero-img-grid img{width:100%;height:100%;object-fit:cover}
-.hero-img-grid img:first-child{grid-row:1/3}
-.hero-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(to right,var(--bg) 0%,transparent 18%),
-             linear-gradient(to top,var(--bg) 0%,transparent 20%);
-}
-.hero-float{
-  position:absolute;bottom:2rem;right:1.5rem;
-  background:rgba(255,255,255,0.93);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.7);
-  border-radius:16px;padding:1.1rem 1.25rem;
-  box-shadow:var(--shadow-lg);max-width:240px;
-  opacity:0;animation:fadeUp 0.7s 0.8s ease forwards;
-}
-.float-cat{font-size:0.7rem;font-weight:700;color:var(--terra);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px}
-.float-title{font-family:var(--serif);font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:4px}
-.float-meta{font-size:0.78rem;color:var(--muted)}
+/* APP SHELL */
+#page-app{display:none;}
+#page-app.active{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:60px;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.topbar-left{display:flex;align-items:center;gap:1.5rem;}
+.topbar-brand{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.topbar-brand-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:600;font-size:0.95rem;color:#fff;}
+.topbar-brand-name{font-weight:600;font-size:0.95rem;letter-spacing:-0.01em;color:var(--text);}
+.topbar-nav{display:flex;gap:4px;}
+.topbar-nav-item{padding:0.4rem 0.85rem;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--t);border:none;background:transparent;}
+.topbar-nav-item:hover{color:var(--text);background:var(--surface2);}
+.topbar-nav-item.active{color:var(--accent);background:var(--accent-light);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.theme-toggle{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all var(--t);}
+.theme-toggle:hover{color:var(--text);border-color:var(--border2);}
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-full);}
+.user-chip-av{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;color:#fff;}
+.user-chip-name{font-size:0.82rem;font-weight:500;color:var(--text);}
 
-/* ── MARQUEE ── */
-#marquee{background:var(--ink);padding:0.9rem 0;overflow:hidden;display:flex}
-.marquee-track{display:flex;gap:2.5rem;animation:marquee 35s linear infinite;white-space:nowrap;flex-shrink:0}
-.marquee-item{font-family:var(--serif);font-style:italic;font-size:1rem;flex-shrink:0}
-.marquee-item.hi{color:var(--gold)}
-.marquee-item.lo{color:rgba(255,255,255,0.4)}
-.marquee-dot{color:rgba(255,255,255,0.15);margin-left:2.5rem}
+/* APP LAYOUT */
+.app-body{display:grid;grid-template-columns:240px 1fr 280px;flex:1;max-width:1200px;width:100%;margin:0 auto;}
+.sidebar-left{padding:1.75rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;display:flex;flex-direction:column;gap:0.25rem;}
+.sidebar-section{margin-bottom:1.5rem;}
+.sidebar-label{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:0 0.75rem;margin-bottom:0.5rem;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:0.6rem 0.75rem;border-radius:var(--radius-sm);font-size:0.875rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--t);border:none;background:transparent;width:100%;text-align:left;}
+.sidebar-item:hover{color:var(--text);background:var(--surface2);}
+.sidebar-item.active{color:var(--accent);background:var(--accent-light);}
+.main-content{padding:1.75rem;max-width:680px;width:100%;}
+.sidebar-right{padding:1.75rem 1.25rem;border-left:1px solid var(--border);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+.widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;}
+.widget-title{font-size:0.875rem;font-weight:600;margin-bottom:1rem;color:var(--text);}
 
-/* ── SECTIONS ── */
-section{padding:6rem 2rem}
-.container{max-width:1100px;margin:0 auto}
-.section-label{display:inline-block;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--terra);margin-bottom:1rem}
-.section-title{font-family:var(--serif);font-size:clamp(2rem,3.5vw,2.8rem);line-height:1.15;letter-spacing:-0.02em;color:var(--ink);margin-bottom:1rem}
-.section-title em{font-style:italic;color:var(--terra)}
-.section-sub{font-size:1.05rem;color:var(--ink3);line-height:1.7;font-weight:300}
+/* TAB PANELS */
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeUp 0.25s ease both;}
 
-/* ── WHY ── */
-#why{background:var(--white)}
-.why-header{text-align:center;margin-bottom:4rem}
-.why-header .section-sub{max-width:520px;margin:0 auto}
-.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
-.why-card{
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:var(--r-lg);padding:2rem;
-  transition:all 0.25s;position:relative;overflow:hidden;cursor:default;
-}
-.why-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:rgba(196,80,42,0.2)}
-.why-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.25rem}
-.why-title{font-family:var(--serif);font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:0.6rem}
-.why-desc{font-size:0.875rem;color:var(--ink3);line-height:1.65}
-.why-bg-icon{position:absolute;bottom:-20px;right:-10px;font-size:5rem;opacity:0.04}
+/* FEED */
+.dc-strip{display:flex;gap:6px;margin-bottom:1.25rem;height:120px;border-radius:var(--radius);overflow:hidden;}
+.dc-strip-img{flex:1;object-fit:cover;display:block;}
+.composer{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
+.composer-top{display:flex;gap:12px;margin-bottom:1rem;}
+.composer-av{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:#fff;flex-shrink:0;}
+.composer-input{flex:1;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 1rem;color:var(--text);font-family:var(--font);font-size:0.9rem;resize:none;outline:none;min-height:80px;transition:border-color var(--t);}
+.composer-input:focus{border-color:var(--accent);}
+.composer-input::placeholder{color:var(--text3);}
+.composer-footer{display:flex;justify-content:flex-end;gap:10px;align-items:center;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:0.75rem;transition:border-color var(--t);}
+.post-card:hover{border-color:var(--border2);}
+.post-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:0.875rem;}
+.post-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--accent-light);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:var(--accent);}
+.post-meta{flex:1;}
+.post-author{font-weight:600;font-size:0.9rem;letter-spacing:-0.01em;}
+.post-time{font-size:0.75rem;color:var(--text3);margin-top:1px;}
+.post-body{font-size:0.9rem;line-height:1.65;color:var(--text);}
+.post-actions{display:flex;gap:4px;margin-top:1rem;padding-top:0.875rem;border-top:1px solid var(--border);}
+.post-act{display:flex;align-items:center;gap:6px;padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text2);border:none;background:transparent;cursor:pointer;transition:all var(--t);font-family:var(--font);}
+.post-act:hover{background:var(--surface2);color:var(--text);}
+.post-act.liked{color:var(--danger);}
 
-/* ── STATS ── */
-#stats{background:var(--ink);padding:4rem 2rem}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center}
-.stat-num{font-family:var(--serif);font-size:3rem;font-weight:900;color:var(--bg);line-height:1;margin-bottom:6px}
-.stat-num .accent{color:var(--gold)}
-.stat-label{font-weight:700;font-size:0.875rem;color:var(--bg);margin-bottom:4px}
-.stat-sub{font-size:0.78rem;color:rgba(255,255,255,0.38)}
+/* EVENTS */
+.event-hero{border-radius:var(--radius);overflow:hidden;height:160px;margin-bottom:1.5rem;position:relative;}
+.event-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.event-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;}
+.event-hero-title{font-family:var(--font-serif);font-size:1.3rem;font-weight:600;color:#fff;}
+.event-hero-sub{font-size:0.8rem;color:rgba(255,255,255,0.75);margin-top:2px;}
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:0.75rem;display:flex;gap:1.1rem;align-items:flex-start;cursor:pointer;transition:all var(--t);}
+.event-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:var(--shadow);}
+.event-date{background:var(--accent-light);border:1px solid rgba(37,99,235,0.2);border-radius:10px;width:50px;height:54px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.event-date-mon{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);}
+.event-date-day{font-size:1.35rem;font-weight:700;line-height:1;color:var(--accent);font-family:var(--font-serif);}
+.event-info{flex:1;}
+.event-name{font-weight:600;font-size:0.9rem;margin-bottom:3px;letter-spacing:-0.01em;}
+.event-meta{font-size:0.78rem;color:var(--text2);}
+.event-going{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:0.76rem;color:var(--text2);}
+.event-going strong{color:var(--accent);}
+.going-btn{padding:0.35rem 0.85rem;font-size:0.78rem;border-radius:var(--radius-sm);background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:var(--font);font-weight:500;transition:all var(--t);flex-shrink:0;}
+.going-btn:hover{background:var(--accent-hover);}
+.going-btn.attending{background:var(--success);}
 
-/* ── HOW ── */
-#how{background:var(--bg)}
-.how-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
-.how-steps{display:flex;flex-direction:column;gap:2rem}
-.how-step{display:flex;gap:1.25rem;align-items:flex-start}
-.step-num{
-  width:48px;height:48px;flex-shrink:0;
-  background:var(--ink);color:var(--bg);border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-weight:700;font-size:0.85rem;
-}
-.step-title{font-family:var(--serif);font-weight:700;font-size:1.05rem;color:var(--ink);margin-bottom:6px}
-.step-desc{font-size:0.875rem;color:var(--ink3);line-height:1.65}
-.how-visual{border-radius:var(--r-xl);overflow:hidden;height:500px;position:relative;background:var(--ink)}
-.how-visual img{width:100%;height:100%;object-fit:cover;opacity:0.65}
-.how-visual-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--ink) 0%,transparent 50%)}
-.how-visual-content{position:absolute;bottom:1.5rem;left:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:8px}
-.feed-preview{
-  background:rgba(255,255,255,0.1);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.15);border-radius:var(--r);padding:1rem;
-}
-.fp-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.fp-av{width:28px;height:28px;border-radius:50%;background:var(--terra);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:#fff}
-.fp-name{font-size:0.78rem;font-weight:600;color:#fff}
-.fp-body{font-size:0.82rem;color:rgba(255,255,255,0.8)}
-.fp-meta{font-size:0.7rem;color:rgba(255,255,255,0.38);margin-top:4px}
-.event-preview{
-  background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);padding:1rem;
-}
-.ep-cat{font-size:0.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
-.ep-title{font-family:var(--serif);font-size:0.92rem;font-weight:700;color:#fff}
-.ep-meta{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:3px}
+/* MEMBERS */
+.members-search-bar{display:flex;gap:10px;margin-bottom:1.5rem;}
+.members-search-bar input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.6rem 1rem;color:var(--text);font-family:var(--font);font-size:0.875rem;outline:none;transition:border-color var(--t);}
+.members-search-bar input:focus{border-color:var(--accent);}
+.members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.875rem;}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;text-align:center;cursor:pointer;transition:all var(--t);}
+.member-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
+.member-av{width:52px;height:52px;border-radius:50%;background:var(--accent-light);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--accent);margin:0 auto 0.75rem;}
+.member-name{font-weight:600;font-size:0.875rem;margin-bottom:2px;letter-spacing:-0.01em;}
+.member-loc{font-size:0.75rem;color:var(--text3);}
+.member-badge{display:inline-block;margin-top:6px;font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);background:var(--gold-light);color:var(--gold);border:1px solid rgba(245,158,11,0.2);}
+.admin-badge{background:rgba(37,99,235,0.1);color:var(--accent);border-color:rgba(37,99,235,0.2);}
 
-/* ── EVENTS ── */
-#events{background:var(--white)}
-.events-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3rem;flex-wrap:wrap;gap:1rem}
-.events-see-all{font-size:0.875rem;font-weight:600;color:var(--terra);border-bottom:1.5px solid var(--terra);padding-bottom:2px}
-.events-see-all:hover{color:var(--terra2);border-color:var(--terra2)}
-.events-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
-.event-card{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:all 0.25s;cursor:pointer}
-.event-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
-.ec-img{height:190px;overflow:hidden;position:relative}
-.ec-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease}
-.event-card:hover .ec-img img{transform:scale(1.05)}
-.ec-cat{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.58);backdrop-filter:blur(8px);color:#fff;font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:99px;letter-spacing:0.03em}
-.ec-body{padding:1.25rem}
-.ec-date{font-size:0.72rem;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
-.ec-name{font-family:var(--serif);font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.3}
-.ec-loc{font-size:0.8rem;color:var(--muted);margin-bottom:1rem}
-.ec-footer{display:flex;align-items:center;justify-content:space-between}
-.ec-going{font-size:0.8rem;color:var(--ink3)}
-.ec-going strong{color:var(--ink)}
-.rsvp-btn{
-  background:var(--terra);color:#fff;border:none;
-  border-radius:8px;padding:8px 16px;
-  font-size:0.8rem;font-weight:700;cursor:pointer;
-  font-family:var(--sans);transition:all 0.2s;
-}
-.rsvp-btn:hover{background:var(--terra2)}
-.rsvp-btn.going{background:var(--sage)}
+/* ADMIN */
+.admin-header{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.admin-header::before{content:'⚡';font-size:5rem;position:absolute;right:1rem;top:-0.5rem;opacity:0.1;}
+.admin-header-title{font-family:var(--font-serif);font-size:1.35rem;font-weight:600;color:#fff;margin-bottom:0.25rem;}
+.admin-header-sub{font-size:0.82rem;color:rgba(255,255,255,0.7);}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.875rem;margin-bottom:1.5rem;}
+.admin-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;text-align:center;}
+.admin-stat-num{font-family:var(--font-serif);font-size:1.75rem;font-weight:600;line-height:1;}
+.admin-stat-label{font-size:0.72rem;color:var(--text2);margin-top:4px;font-weight:500;}
+.admin-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden;}
+.admin-section-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.admin-section-title{font-weight:600;font-size:0.9rem;}
+.admin-table{width:100%;border-collapse:collapse;}
+.admin-table th{padding:0.6rem 1.25rem;text-align:left;font-size:0.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+.admin-table td{padding:0.85rem 1.25rem;font-size:0.85rem;border-bottom:1px solid var(--border);}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--surface2);}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:var(--radius-full);font-size:0.72rem;font-weight:600;}
+.status-active{background:rgba(16,185,129,0.12);color:var(--success);}
+.status-pending{background:var(--gold-light);color:var(--gold);}
+.status-banned{background:rgba(239,68,68,0.12);color:var(--danger);}
+.admin-act-btn{padding:0.3rem 0.65rem;font-size:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all var(--t);margin-left:4px;}
+.admin-act-btn:hover{background:var(--surface2);color:var(--text);}
+.admin-act-btn.red:hover{background:rgba(239,68,68,0.1);color:var(--danger);border-color:rgba(239,68,68,0.3);}
 
-/* ── TESTIMONIALS ── */
-#testimonials{background:var(--bg)}
-.t-header{text-align:center;margin-bottom:3.5rem}
-.t-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}
-.t-card{
-  background:var(--white);border:1px solid var(--border);
-  border-radius:var(--r-lg);padding:1.75rem;
-  display:flex;flex-direction:column;
-}
-.t-card.dark{background:var(--ink);border-color:transparent}
-.stars{color:var(--gold);font-size:0.75rem;letter-spacing:2px;margin-bottom:0.875rem}
-.quote-mark{font-family:var(--serif);font-size:3.5rem;line-height:0.8;color:var(--bg2);margin-bottom:1rem;display:block}
-.dark .quote-mark{color:rgba(255,255,255,0.07)}
-.t-quote{font-size:0.9rem;line-height:1.7;color:var(--ink3);font-style:italic;flex:1;margin-bottom:1.5rem}
-.dark .t-quote{color:rgba(255,255,255,0.72)}
-.t-author{display:flex;align-items:center;gap:12px}
-.t-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:800;flex-shrink:0}
-.t-name{font-weight:700;font-size:0.875rem;color:var(--ink)}
-.dark .t-name{color:#fff}
-.t-role{font-size:0.75rem;color:var(--muted);margin-top:1px}
-.dark .t-role{color:rgba(255,255,255,0.38)}
+/* SHARED */
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;}
+.section-title{font-weight:600;font-size:1.05rem;letter-spacing:-0.01em;}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2);}
+.empty-icon{font-size:2.25rem;margin-bottom:0.75rem;}
+.empty-text{font-size:0.875rem;line-height:1.6;}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+.loading{display:flex;justify-content:center;padding:2.5rem;}
+.dc-img-widget{border-radius:var(--radius);overflow:hidden;height:140px;margin-bottom:1rem;position:relative;}
+.dc-img-widget img{width:100%;height:100%;object-fit:cover;display:block;}
+.dc-img-widget-cap{position:absolute;bottom:0;left:0;right:0;padding:0.75rem;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%);font-size:0.75rem;color:rgba(255,255,255,0.9);font-weight:500;}
+.trend-item{display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.83rem;}
+.trend-item:last-child{border-bottom:none;}
+.trend-num{font-size:0.7rem;color:var(--text3);font-weight:600;width:16px;}
+.trend-text{flex:1;font-weight:500;}
+.trend-count{font-size:0.72rem;color:var(--text3);}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(8px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.7rem 1.25rem;font-size:0.875rem;font-weight:500;z-index:500;opacity:0;transition:all 0.3s ease;pointer-events:none;box-shadow:var(--shadow-lg);white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ── TRUST ── */
-#trust{background:var(--white)}
-.trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
-.trust-badges{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.trust-badge{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem}
-.tb-icon{font-size:1.5rem;margin-bottom:0.75rem}
-.tb-title{font-family:var(--serif);font-weight:700;font-size:0.95rem;color:var(--ink);margin-bottom:6px}
-.tb-desc{font-size:0.8rem;color:var(--ink3);line-height:1.6}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── CTA BANNER ── */
-#cta{background:var(--terra);padding:6rem 2rem;position:relative;overflow:hidden;text-align:center}
-#cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 50% 50%,rgba(255,255,255,0.07) 0%,transparent 70%)}
-.cta-inner{max-width:660px;margin:0 auto;position:relative;z-index:1}
-.cta-eyebrow{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:1.5rem}
-.cta-h2{font-family:var(--serif);font-size:clamp(2.2rem,4vw,3.2rem);line-height:1.1;letter-spacing:-0.025em;color:#fff;font-weight:900;margin-bottom:1.25rem}
-.cta-h2 em{font-style:italic;color:rgba(255,255,255,0.65)}
-.cta-sub{font-size:1.05rem;color:rgba(255,255,255,0.75);line-height:1.7;font-weight:300;margin-bottom:2.5rem}
-.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem}
-.cta-fine{font-size:0.78rem;color:rgba(255,255,255,0.38)}
-
-/* ── FOOTER ── */
-footer{background:var(--ink);padding:4rem 2rem 2rem;color:rgba(255,255,255,0.45)}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
-.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.footer-logo{width:32px;height:32px;background:var(--terra);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;color:#fff;font-size:1rem;font-weight:700}
-.footer-name{font-weight:700;font-size:0.95rem;color:var(--bg)}
-.footer-desc{font-size:0.85rem;line-height:1.7;max-width:240px}
-.footer-col-title{font-weight:700;font-size:0.78rem;color:var(--bg);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem}
-.footer-links{display:flex;flex-direction:column;gap:0.6rem}
-.footer-links a{font-size:0.875rem;color:rgba(255,255,255,0.42);transition:color 0.18s}
-.footer-links a:hover{color:var(--bg)}
-.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.07);flex-wrap:wrap;gap:1rem;font-size:0.82rem}
-.footer-legal{display:flex;gap:1.5rem}
-.footer-legal a{color:rgba(255,255,255,0.32);transition:color 0.18s}
-.footer-legal a:hover{color:var(--bg)}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* ── RESPONSIVE ── */
-@media(max-width:1024px){
-  .why-grid{grid-template-columns:1fr 1fr}
-  .events-grid{grid-template-columns:1fr 1fr}
-  .t-grid{grid-template-columns:1fr 1fr}
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:2rem}
-  .footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
-}
-@media(max-width:768px){
-  #hero{grid-template-columns:1fr;min-height:auto;padding-bottom:3rem}
-  .hero-left{padding:3rem 1.5rem 2rem}
-  .hero-right{display:none}
-  #nav .nav-links{display:none}
-  .how-grid{grid-template-columns:1fr}
-  .how-visual{display:none}
-  .trust-grid{grid-template-columns:1fr}
-  .events-grid{grid-template-columns:1fr}
-  .why-grid{grid-template-columns:1fr}
-  .t-grid{grid-template-columns:1fr}
-  .footer-grid{grid-template-columns:1fr}
-  .footer-bottom{flex-direction:column;text-align:center}
-  .footer-legal{flex-wrap:wrap;justify-content:center}
-  .events-header{flex-direction:column;align-items:flex-start}
-  .cta-btns{flex-direction:column;align-items:center}
-  .hero-ctas{flex-direction:column}
-  .hero-ctas .btn{text-align:center;justify-content:center}
-}
+@media(max-width:1100px){.app-body{grid-template-columns:220px 1fr;}.sidebar-right{display:none;}}
+@media(max-width:768px){.hero{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:2.5rem 1.5rem;}.app-body{grid-template-columns:1fr;}.sidebar-left{display:none;}.main-content{padding:1rem;}.topbar-nav{display:none;}}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav id="nav">
-  <a class="nav-brand" href="https://dmvfriends.com">
-    <div class="nav-logo">D</div>
-    <span class="nav-name">DMV Friends</span>
+<!-- LANDING -->
+<div id="page-landing" class="page active">
+
+<!-- ══ LANDING NAV ══ -->
+<nav id="land-nav" style="position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:64px;transition:all 0.3s ease;">
+  <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+    <div style="width:36px;height:36px;background:#C4502A;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-size:1.1rem;color:#fff;font-weight:700;">D</div>
+    <span style="font-weight:700;font-size:0.95rem;color:#1A1714;letter-spacing:-0.01em;">DMV Friends</span>
   </a>
-  <div class="nav-links">
-    <a class="nav-link" href="#why">Why Join</a>
-    <a class="nav-link" href="#events">Events</a>
-    <a class="nav-link" href="#testimonials">Stories</a>
-    <a class="nav-link" href="#how">How It Works</a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="openModal('login')" style="background:transparent;border:1.5px solid rgba(26,23,20,0.18);color:#1A1714;padding:9px 20px;border-radius:9px;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;">Sign In</button>
+    <button onclick="openModal('signup')" style="background:#C4502A;color:#fff;border:none;padding:10px 22px;border-radius:9px;font-size:0.875rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 12px rgba(196,80,42,0.35);transition:all 0.2s;">Join Free →</button>
   </div>
-  <a class="nav-cta" href="https://dmvfriends.com">Join Free →</a>
 </nav>
 
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-left">
-    <div class="hero-tags">
-      <span class="hero-tag">DC</span>
-      <span class="hero-tag">MD</span>
-      <span class="hero-tag">VA</span>
-      <span class="hero-tag-sub">· 21+ Community · Free to Join</span>
+<!-- ══ HERO ══ -->
+<div style="min-height:100vh;background:#FAF8F4;display:grid;grid-template-columns:1fr 1fr;padding-top:64px;overflow:hidden;">
+  <!-- Left -->
+  <div style="display:flex;flex-direction:column;justify-content:center;padding:4rem 3rem 4rem 5rem;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.75rem;">
+      <span style="background:#1A1714;color:#FAF8F4;font-size:0.68rem;font-weight:700;padding:4px 9px;border-radius:6px;letter-spacing:0.06em;">DC</span>
+      <span style="background:#1A1714;color:#FAF8F4;font-size:0.68rem;font-weight:700;padding:4px 9px;border-radius:6px;letter-spacing:0.06em;">MD</span>
+      <span style="background:#1A1714;color:#FAF8F4;font-size:0.68rem;font-weight:700;padding:4px 9px;border-radius:6px;letter-spacing:0.06em;">VA</span>
+      <span style="font-size:0.78rem;color:#7A7268;font-weight:500;">· 21+ Community · Free to Join</span>
     </div>
-    <h1 class="hero-h1">
-      DC is big.<br/>
-      Your circle<br/>
-      doesn't have to<br/>
-      feel <em>small.</em>
+    <h1 style="font-family:Georgia,serif;font-size:clamp(2.6rem,4.5vw,4rem);line-height:1.1;letter-spacing:-0.025em;color:#1A1714;margin-bottom:1.5rem;font-weight:900;">
+      DC is big.<br/>Your circle<br/>doesn't have to<br/>feel <em style="color:#C4502A;font-style:italic;">small.</em>
     </h1>
-    <p class="hero-sub">
+    <p style="font-size:1.05rem;line-height:1.75;color:#5C5650;max-width:420px;margin-bottom:2.5rem;font-weight:300;">
       DMV Friends connects young professionals, newcomers, and locals across DC, Maryland, and Virginia — through real events, real people, and a community that actually shows up.
     </p>
-    <div class="hero-ctas">
-      <a class="btn btn-primary" href="https://dmvfriends.com">Find Your People — It's Free</a>
-      <a class="btn btn-outline" href="#how">See How It Works</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:3rem;">
+      <button onclick="openModal('signup')" style="background:#C4502A;color:#fff;border:none;padding:15px 30px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(196,80,42,0.35);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        Find Your People — It's Free
+      </button>
+      <button onclick="openModal('login')" style="background:transparent;color:#1A1714;border:1.5px solid rgba(26,23,20,0.18);padding:15px 24px;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;">
+        Sign In
+      </button>
     </div>
-    <div class="hero-proof">
-      <div class="avatars">
-        <div class="av" style="background:#DBEAFE;color:#1D4ED8;">A</div>
-        <div class="av" style="background:#FCE7F3;color:#BE185D;">M</div>
-        <div class="av" style="background:#D1FAE5;color:#065F46;">J</div>
-        <div class="av" style="background:#FEF3C7;color:#92400E;">K</div>
-        <div class="av" style="background:#EDE9FE;color:#6D28D9;">T</div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex;">
+        <div style="width:38px;height:38px;border-radius:50%;background:#DBEAFE;color:#1D4ED8;border:2.5px solid #FAF8F4;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;">A</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:#FCE7F3;color:#BE185D;border:2.5px solid #FAF8F4;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;margin-left:-10px;">M</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:#D1FAE5;color:#065F46;border:2.5px solid #FAF8F4;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;margin-left:-10px;">J</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:#FEF3C7;color:#92400E;border:2.5px solid #FAF8F4;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;margin-left:-10px;">K</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:#EDE9FE;color:#6D28D9;border:2.5px solid #FAF8F4;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;margin-left:-10px;">T</div>
       </div>
-      <div class="proof-text">
-        <strong>500+ members already inside</strong>
-        <span>Across DC, Maryland & Virginia</span>
+      <div>
+        <div style="font-size:0.85rem;font-weight:700;color:#1A1714;" id="stat-members-hero">500+ members already inside</div>
+        <div style="font-size:0.78rem;color:#7A7268;">Across DC, Maryland &amp; Virginia</div>
       </div>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="hero-img-grid">
-      <img src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=700&q=85&fit=crop" alt="Washington DC skyline"/>
-      <img src="https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=400&q=85&fit=crop" alt="Friends in DC"/>
-      <img src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=400&q=85&fit=crop" alt="DMV community events"/>
+  <!-- Right images -->
+  <div style="position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;">
+      <img src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=700&q=85&fit=crop" style="width:100%;height:100%;object-fit:cover;grid-row:1/3;" alt="DC skyline"/>
+      <img src="https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=400&q=85&fit=crop" style="width:100%;height:100%;object-fit:cover;" alt="Friends"/>
+      <img src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=400&q=85&fit=crop" style="width:100%;height:100%;object-fit:cover;" alt="Events"/>
     </div>
-    <div class="hero-overlay"></div>
-    <div class="hero-float">
-      <div class="float-cat">🎉 This Saturday</div>
-      <div class="float-title">Georgetown Rooftop Mixer</div>
-      <div class="float-meta">📍 Georgetown, DC · 7PM · 43 going</div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to right,#FAF8F4 0%,transparent 18%),linear-gradient(to top,#FAF8F4 0%,transparent 20%);"></div>
+    <div style="position:absolute;bottom:2rem;right:1.5rem;background:rgba(255,255,255,0.93);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);border-radius:16px;padding:1.1rem 1.25rem;box-shadow:0 12px 48px rgba(0,0,0,0.12);max-width:240px;">
+      <div style="font-size:0.7rem;font-weight:700;color:#C4502A;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">🎉 This Saturday</div>
+      <div style="font-family:Georgia,serif;font-size:0.95rem;font-weight:700;color:#1A1714;margin-bottom:4px;">Georgetown Rooftop Mixer</div>
+      <div style="font-size:0.78rem;color:#7A7268;">📍 Georgetown, DC · 7PM · 43 going</div>
     </div>
   </div>
-</section>
-
-<!-- MARQUEE -->
-<div id="marquee" aria-hidden="true">
-  <div class="marquee-track" id="marquee-track"></div>
 </div>
 
-<!-- WHY -->
-<section id="why">
-  <div class="container">
-    <div class="why-header reveal">
-      <div class="section-label">Why DMV Friends</div>
-      <h2 class="section-title">Built for the way you<br/><em>actually</em> want to connect</h2>
-      <p class="section-sub">No swiping. No algorithms. No cringe. Just a genuine space built around the DMV and the people who call it home.</p>
-    </div>
-    <div class="why-grid" id="why-grid"></div>
+<!-- ══ STATS BAR ══ -->
+<div style="background:#1A1714;padding:2rem;display:flex;justify-content:center;">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center;max-width:900px;width:100%;">
+    <div><div style="font-family:Georgia,serif;font-size:2.5rem;font-weight:900;color:#FAF8F4;line-height:1;margin-bottom:6px;">500<span style="color:#E8A832;">+</span></div><div style="font-weight:700;font-size:0.85rem;color:#FAF8F4;">Active Members</div></div>
+    <div><div style="font-family:Georgia,serif;font-size:2.5rem;font-weight:900;color:#FAF8F4;line-height:1;margin-bottom:6px;">3</div><div style="font-weight:700;font-size:0.85rem;color:#FAF8F4;">States Covered</div></div>
+    <div><div style="font-family:Georgia,serif;font-size:2.5rem;font-weight:900;color:#FAF8F4;line-height:1;margin-bottom:6px;">50<span style="color:#E8A832;">+</span></div><div style="font-weight:700;font-size:0.85rem;color:#FAF8F4;">Events Per Month</div></div>
+    <div><div style="font-family:Georgia,serif;font-size:2.5rem;font-weight:900;color:#FAF8F4;line-height:1;margin-bottom:6px;">21<span style="color:#E8A832;">+</span></div><div style="font-weight:700;font-size:0.85rem;color:#FAF8F4;">Only Community</div></div>
   </div>
-</section>
+</div>
 
-<!-- STATS -->
-<section id="stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="reveal" data-delay="1">
-        <div class="stat-num">500<span class="accent">+</span></div>
-        <div class="stat-label">Active Members</div>
-        <div class="stat-sub">and growing every week</div>
+<!-- ══ WHY JOIN ══ -->
+<div style="background:#fff;padding:5rem 2rem;">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:3rem;">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C4502A;margin-bottom:0.75rem;">Why DMV Friends</div>
+      <h2 style="font-family:Georgia,serif;font-size:clamp(1.8rem,3vw,2.5rem);line-height:1.15;color:#1A1714;margin-bottom:0.75rem;">Built for the way you <em style="color:#C4502A;font-style:italic;">actually</em> want to connect</h2>
+      <p style="font-size:1rem;color:#5C5650;line-height:1.7;max-width:500px;margin:0 auto;font-weight:300;">No swiping. No algorithms. No cringe. A genuine space built around the DMV and the people who call it home.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;">
+      <div style="background:#FAF8F4;border:1px solid rgba(26,23,20,0.08);border-radius:16px;padding:1.75rem;">
+        <div style="font-size:1.5rem;margin-bottom:1rem;">🤝</div>
+        <div style="font-family:Georgia,serif;font-weight:700;font-size:1rem;color:#1A1714;margin-bottom:0.5rem;">Real people, not profiles</div>
+        <div style="font-size:0.875rem;color:#5C5650;line-height:1.65;">Verified real people in the DMV. Actively moderated so the quality stays high.</div>
       </div>
-      <div class="reveal" data-delay="2">
-        <div class="stat-num">3</div>
-        <div class="stat-label">States Covered</div>
-        <div class="stat-sub">DC · Maryland · Virginia</div>
+      <div style="background:#FAF8F4;border:1px solid rgba(26,23,20,0.08);border-radius:16px;padding:1.75rem;">
+        <div style="font-size:1.5rem;margin-bottom:1rem;">📅</div>
+        <div style="font-family:Georgia,serif;font-weight:700;font-size:1rem;color:#1A1714;margin-bottom:0.5rem;">Events worth showing up for</div>
+        <div style="font-size:0.875rem;color:#5C5650;line-height:1.65;">Rooftop parties, brunches, networking nights across DC, MD, and VA.</div>
       </div>
-      <div class="reveal" data-delay="3">
-        <div class="stat-num">50<span class="accent">+</span></div>
-        <div class="stat-label">Events Per Month</div>
-        <div class="stat-sub">across the region</div>
-      </div>
-      <div class="reveal" data-delay="4">
-        <div class="stat-num">21<span class="accent">+</span></div>
-        <div class="stat-label">Only Community</div>
-        <div class="stat-sub">adults-only, always</div>
+      <div style="background:#FAF8F4;border:1px solid rgba(26,23,20,0.08);border-radius:16px;padding:1.75rem;">
+        <div style="font-size:1.5rem;margin-bottom:1rem;">🔒</div>
+        <div style="font-family:Georgia,serif;font-weight:700;font-size:1rem;color:#1A1714;margin-bottom:0.5rem;">Safe, moderated, 21+</div>
+        <div style="font-size:0.875rem;color:#5C5650;line-height:1.65;">Age-verified, zero-tolerance for disrespect. You're in good company.</div>
       </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- HOW IT WORKS -->
-<section id="how">
-  <div class="container">
-    <div class="how-grid">
-      <div>
-        <div class="reveal">
-          <div class="section-label">How It Works</div>
-          <h2 class="section-title">From sign up to<br/><em>showing up</em> in minutes</h2>
-          <p class="section-sub" style="margin-bottom:3rem;">No complicated setup. No lengthy questionnaires. Three steps and you're part of something real.</p>
+<!-- ══ TESTIMONIALS ══ -->
+<div style="background:#FAF8F4;padding:5rem 2rem;">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:3rem;">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C4502A;margin-bottom:0.75rem;">Real Stories</div>
+      <h2 style="font-family:Georgia,serif;font-size:clamp(1.8rem,3vw,2.5rem);line-height:1.15;color:#1A1714;">From people who <em style="font-style:italic;color:#C4502A;">showed up</em></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;">
+      <div style="background:#fff;border:1px solid rgba(26,23,20,0.08);border-radius:16px;padding:1.75rem;">
+        <div style="color:#E8A832;margin-bottom:0.75rem;letter-spacing:2px;">★★★★★</div>
+        <p style="font-size:0.9rem;line-height:1.7;color:#5C5650;font-style:italic;margin-bottom:1.25rem;">"I moved from Atlanta knowing nobody. Two weeks in I had brunch plans and a hiking group. This community is real."</p>
+        <div style="font-weight:700;font-size:0.875rem;color:#1A1714;">Aisha T.</div>
+        <div style="font-size:0.78rem;color:#7A7268;">Marketing Manager · Adams Morgan, DC</div>
+      </div>
+      <div style="background:#1A1714;border-radius:16px;padding:1.75rem;">
+        <div style="color:#E8A832;margin-bottom:0.75rem;letter-spacing:2px;">★★★★★</div>
+        <p style="font-size:0.9rem;line-height:1.7;color:rgba(255,255,255,0.75);font-style:italic;margin-bottom:1.25rem;">"I was skeptical — another app promising community. Six events in, I've made genuine friends. Not connections. Friends."</p>
+        <div style="font-weight:700;font-size:0.875rem;color:#fff;">Marcus L.</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);">Software Engineer · Arlington, VA</div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(26,23,20,0.08);border-radius:16px;padding:1.75rem;">
+        <div style="color:#E8A832;margin-bottom:0.75rem;letter-spacing:2px;">★★★★★</div>
+        <p style="font-size:0.9rem;line-height:1.7;color:#5C5650;font-style:italic;margin-bottom:1.25rem;">"Remote work made me feel invisible in DC. This community gave me a reason to leave my apartment."</p>
+        <div style="font-weight:700;font-size:0.875rem;color:#1A1714;">Jordan P.</div>
+        <div style="font-size:0.78rem;color:#7A7268;">UX Designer · Capitol Hill, DC</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FINAL CTA ══ -->
+<div style="background:#C4502A;padding:5rem 2rem;text-align:center;">
+  <div style="max-width:600px;margin:0 auto;">
+    <h2 style="font-family:Georgia,serif;font-size:clamp(2rem,4vw,3rem);line-height:1.1;color:#fff;font-weight:900;margin-bottom:1rem;">Stop waiting for the <em style="font-style:italic;color:rgba(255,255,255,0.65);">right time.</em></h2>
+    <p style="font-size:1.05rem;color:rgba(255,255,255,0.75);line-height:1.7;margin-bottom:2rem;font-weight:300;">Sign up free, show up to one event, and see what happens.</p>
+    <button onclick="openModal('signup')" style="background:#fff;color:#C4502A;border:none;padding:16px 36px;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,0.15);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+      Join Free — No Credit Card
+    </button>
+    <div style="margin-top:1rem;font-size:0.78rem;color:rgba(255,255,255,0.4);">Free to join · 21+ only · DC · Maryland · Virginia</div>
+  </div>
+</div>
+
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <!-- SIGNUP -->
+    <div id="f-signup">
+      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Create your account</span></div>
+      
+      <div class="field"><label>Display Name</label><input id="s-name" type="text" placeholder="What should we call you?"/></div>
+      <div class="field"><label>Location (DC / MD / VA)</label><input id="s-loc" type="text" placeholder="e.g. Adams Morgan, DC"/></div>
+      <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="you@example.com"/></div>
+      <div class="field"><label>Password</label><input id="s-pass" type="password" placeholder="Min 8 characters"/></div>
+      <div class="age-check"><input type="checkbox" id="s-age"/><label for="s-age">I confirm I am 21 years of age or older</label></div>
+      <button class="btn btn-primary" style="width:100%;" id="s-btn" onclick="doSignup()">Join DMV Friends</button>
+      <div class="form-err" id="s-err"></div><div class="form-ok" id="s-ok"></div>
+      <div class="auth-switch">Already a member? <a onclick="switchForm('login')">Sign in</a></div>
+    </div>
+    <!-- LOGIN -->
+    <div id="f-login" style="display:none;">
+      <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Welcome back</span></div>
+      <div class="field"><label>Email</label><input id="l-email" type="email" placeholder="you@example.com"/></div>
+      <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="Your password"/></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="l-btn" onclick="doLogin()">Sign In</button>
+      <div class="form-err" id="l-err"></div>
+      <div class="auth-switch">New here? <a onclick="switchForm('signup')">Create account</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="page-app" class="page">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <a class="topbar-brand" href="#" onclick="switchPanel('feed', document.querySelector('[onclick*=\'feed\']'));return false;"><div class="topbar-brand-mark">D</div><span class="topbar-brand-name">DMV Friends</span></a>
+      <nav class="topbar-nav">
+        <button class="topbar-nav-item active" onclick="switchPanel('feed',this)">Feed</button>
+        <button class="topbar-nav-item" onclick="switchPanel('events',this)">Events</button>
+        <button class="topbar-nav-item" onclick="switchPanel('members',this)">Members</button>
+        <button class="topbar-nav-item admin-only" onclick="switchPanel('admin',this)" style="display:none;">⚡ Admin</button>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+      <div class="user-chip"><div class="user-chip-av" id="topbar-av">?</div><span class="user-chip-name" id="topbar-nm">...</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="app-body">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-left">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigate</div>
+        <button class="sidebar-item active" onclick="switchPanel('feed',this)">🏠 &nbsp;Feed</button>
+        <button class="sidebar-item" onclick="switchPanel('events',this)">📅 &nbsp;Events</button>
+        <button class="sidebar-item" onclick="switchPanel('members',this)">👥 &nbsp;Members</button>
+      </div>
+      <div class="sidebar-section admin-only" id="admin-sidebar-sec" style="display:none;">
+        <div class="sidebar-label">Admin</div>
+        <button class="sidebar-item" onclick="switchPanel('admin',this)">⚡ &nbsp;Admin Panel</button>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+      <!-- FEED -->
+      <div id="tab-feed" class="tab-panel active">
+        <div class="dc-strip">
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=600&q=70&fit=crop" alt="DC night"/>
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=600&q=70&fit=crop" alt="DC social"/>
+          <img class="dc-strip-img" src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=600&q=70&fit=crop" alt="DMV lifestyle"/>
         </div>
-        <div class="how-steps">
-          <div class="how-step reveal" data-delay="1">
-            <div class="step-num">01</div>
-            <div>
-              <div class="step-title">Create your free account</div>
-              <div class="step-desc">Sign up in under 60 seconds — name, email, your neighborhood. No credit card, no catch, no algorithm setup questionnaire.</div>
-            </div>
+        <div class="composer">
+          <div class="composer-top">
+            <div class="composer-av" id="composer-av">?</div>
+            <textarea class="composer-input" id="post-text" placeholder="What's going on in the DMV?"></textarea>
           </div>
-          <div class="how-step reveal" data-delay="2">
-            <div class="step-num">02</div>
-            <div>
-              <div class="step-title">Explore your community</div>
-              <div class="step-desc">Browse the member feed, discover events happening near you, and see who's already in the community. You'll feel at home fast.</div>
-            </div>
-          </div>
-          <div class="how-step reveal" data-delay="3">
-            <div class="step-num">03</div>
-            <div>
-              <div class="step-title">Show up. Meet people. Repeat.</div>
-              <div class="step-desc">RSVP to events, post on the feed, connect with members. The more you show up, the bigger your DMV circle grows.</div>
-            </div>
+          <div class="composer-footer">
+            <button class="btn btn-ghost btn-sm">📷 Photo</button>
+            <button class="btn btn-primary btn-sm" id="post-btn" onclick="submitPost()">Post</button>
           </div>
         </div>
-        <div class="reveal" data-delay="4" style="margin-top:2.5rem;">
-          <a class="btn btn-primary" href="https://dmvfriends.com">Create My Free Account →</a>
-        </div>
+        <div id="feed-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
-      <div class="how-visual reveal" data-delay="2">
-        <img src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=700&q=85&fit=crop" alt="DMV community gathering"/>
-        <div class="how-visual-overlay"></div>
-        <div class="how-visual-content">
-          <div class="feed-preview">
-            <div class="fp-header">
-              <div class="fp-av">A</div>
-              <div class="fp-name">Aisha T. · Adams Morgan</div>
-            </div>
-            <div class="fp-body">Anyone going to the rooftop thing Saturday? 🙋‍♀️</div>
-            <div class="fp-meta">❤️ 14 · 💬 6 replies · 2m ago</div>
-          </div>
-          <div class="event-preview">
-            <div class="ep-cat">📅 Next Event</div>
-            <div class="ep-title">Georgetown Rooftop Happy Hour</div>
-            <div class="ep-meta">Saturday · 7PM · 43 people going</div>
+
+      <!-- EVENTS -->
+      <div id="tab-events" class="tab-panel">
+        <div class="event-hero">
+          <img src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=900&q=80&fit=crop" alt="DC events"/>
+          <div class="event-hero-overlay">
+            <div class="event-hero-title">Upcoming Events</div>
+            <div class="event-hero-sub">Curated for the DMV community</div>
           </div>
         </div>
+        <div class="section-row">
+          <div class="section-title">What's happening</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddEvent()">+ Add Event</button>
+        </div>
+        <div id="events-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- EVENTS -->
-<section id="events">
-  <div class="container">
-    <div class="events-header reveal">
-      <div>
-        <div class="section-label">Local Events</div>
-        <h2 class="section-title" style="margin-bottom:0;">What's happening<br/><em>this week</em></h2>
+      <!-- MEMBERS -->
+      <div id="tab-members" class="tab-panel">
+        <div class="section-row">
+          <div class="section-title">Community Members</div>
+          <span id="member-count" style="font-size:0.8rem;color:var(--text2);"></span>
+        </div>
+        <div class="members-search-bar">
+          <input type="text" placeholder="Search members by name or location..." id="member-search" oninput="filterMembers()"/>
+        </div>
+        <div id="members-grid" class="members-grid"><div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div></div>
       </div>
-      <a class="events-see-all" href="https://dmvfriends.com">See all events →</a>
-    </div>
-    <div class="events-grid" id="events-grid"></div>
-  </div>
-</section>
 
-<!-- TESTIMONIALS -->
-<section id="testimonials">
-  <div class="container">
-    <div class="t-header reveal">
-      <div class="section-label">Real Stories</div>
-      <h2 class="section-title">From people who<br/><em>showed up</em></h2>
-    </div>
-    <div class="t-grid" id="t-grid"></div>
-  </div>
-</section>
-
-<!-- TRUST -->
-<section id="trust">
-  <div class="container">
-    <div class="trust-grid">
-      <div>
-        <div class="reveal">
-          <div class="section-label">Safety & Trust</div>
-          <h2 class="section-title">A community you can<br/><em>actually</em> feel safe in</h2>
-          <p class="section-sub" style="max-width:420px;margin-bottom:2rem;">We take the safety and quality of this community seriously. DMV Friends is built around human wellbeing — not growth metrics or engagement hacks.</p>
-          <a class="btn btn-dark" href="https://dmvfriends.com">Join a Safe Community →</a>
+      <!-- ADMIN -->
+      <div id="tab-admin" class="tab-panel">
+        <div class="admin-header">
+          <div class="admin-header-title">Admin Dashboard</div>
+          <div class="admin-header-sub">Full control over your DMV Friends community</div>
+        </div>
+        <div class="admin-stats">
+          <div class="admin-stat"><div class="admin-stat-num" id="a-members">—</div><div class="admin-stat-label">Members</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="a-posts">—</div><div class="admin-stat-label">Posts</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="a-events">—</div><div class="admin-stat-label">Events</div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">👥 All Members</div><button class="btn btn-ghost btn-sm" onclick="loadAdminMembers()">↻ Refresh</button></div>
+          <div id="admin-members-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">📝 Recent Posts</div><button class="btn btn-ghost btn-sm" onclick="loadAdminPosts()">↻ Refresh</button></div>
+          <div id="admin-posts-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="admin-section">
+          <div class="admin-section-header"><div class="admin-section-title">📅 Events</div><button class="btn btn-primary btn-sm" onclick="openAddEvent()">+ Add Event</button></div>
+          <div id="admin-events-list"><div class="loading"><div class="spinner"></div></div></div>
         </div>
       </div>
-      <div class="trust-badges" id="trust-badges"></div>
-    </div>
-  </div>
-</section>
+    </main>
 
-<!-- CTA BANNER -->
-<section id="cta">
-  <div class="cta-inner reveal">
-    <div class="cta-eyebrow">Ready? Your circle is waiting.</div>
-    <h2 class="cta-h2">Stop waiting for the<br/><em>right time.</em></h2>
-    <p class="cta-sub">Sign up free, show up to one event, and see what happens. The worst case? You meet some genuinely interesting people in your city. The best case? You find your people.</p>
-    <div class="cta-btns">
-      <a class="btn btn-white" href="https://dmvfriends.com">Join Free — No Credit Card</a>
-      <a class="btn btn-ghost-white" href="#events">Browse Events First</a>
-    </div>
-    <div class="cta-fine">Free to join · 21+ only · DC · Maryland · Virginia</div>
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar-right">
+      <div class="dc-img-widget">
+        <img src="https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=600&q=70&fit=crop" alt="DC skyline"/>
+        <div class="dc-img-widget-cap">Washington, DC</div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">🔥 Trending in DMV</div>
+        <div class="trend-item"><span class="trend-num">1</span><span class="trend-text">#DCNightlife</span><span class="trend-count">24 posts</span></div>
+        <div class="trend-item"><span class="trend-num">2</span><span class="trend-text">#Georgetown</span><span class="trend-count">18 posts</span></div>
+        <div class="trend-item"><span class="trend-num">3</span><span class="trend-text">#DMVBrunch</span><span class="trend-count">15 posts</span></div>
+        <div class="trend-item"><span class="trend-num">4</span><span class="trend-text">#NoVA</span><span class="trend-count">12 posts</span></div>
+        <div class="trend-item"><span class="trend-num">5</span><span class="trend-text">#MDSuburbs</span><span class="trend-count">9 posts</span></div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">🗓 This Week</div>
+        <div id="sidebar-events"><div class="spinner" style="margin:0 auto;display:block;"></div></div>
+      </div>
+    </aside>
   </div>
-</section>
+</div>
 
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand">
-          <div class="footer-logo">D</div>
-          <div class="footer-name">DMV Friends</div>
-        </div>
-        <p class="footer-desc">The community for young professionals and social seekers across DC, Maryland, and Virginia. Real people. Real events. Real connections.</p>
-      </div>
-      <div>
-        <div class="footer-col-title">Community</div>
-        <div class="footer-links">
-          <a href="https://dmvfriends.com">Join Free</a>
-          <a href="https://dmvfriends.com">Browse Events</a>
-          <a href="https://dmvfriends.com">Meet Members</a>
-          <a href="https://dmvfriends.com">Community Feed</a>
-        </div>
-      </div>
-      <div>
-        <div class="footer-col-title">The Region</div>
-        <div class="footer-links">
-          <a href="#">Washington, DC</a>
-          <a href="#">Maryland</a>
-          <a href="#">Northern Virginia</a>
-          <a href="#">DMV Events</a>
-        </div>
-      </div>
-      <div>
-        <div class="footer-col-title">Company</div>
-        <div class="footer-links">
-          <a href="#">About Us</a>
-          <a href="#">Community Guidelines</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Contact</a>
-        </div>
-      </div>
+<!-- EVENT MODAL -->
+<div class="overlay" id="event-overlay">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-x" onclick="closeEventModal()">✕</button>
+    <div class="modal-logo"><div class="modal-logo-mark">📅</div><span class="modal-title">Create Event</span></div>
+    <div class="field"><label>Event Name</label><input id="ev-title" type="text" placeholder="e.g. DMV Rooftop Happy Hour"/></div>
+    <div class="field"><label>Category</label><select id="ev-category"><option value="Social">🍹 Social / Hangout</option><option value="Brunch">🍳 Brunch</option><option value="Networking">💼 Networking</option><option value="Party">🎉 Party</option><option value="Sports">⚽ Sports / Outdoors</option><option value="Food">🍽 Food / Drinks</option><option value="Culture">🎭 Arts / Culture</option><option value="Other">📌 Other</option></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Date</label><input id="ev-date" type="date"/></div>
+      <div class="field"><label>Time</label><input id="ev-time" type="time"/></div>
     </div>
-    <div class="footer-bottom">
-      <div>© 2026 DMV Friends. Made with ❤️ for the DMV community.</div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Community Guidelines</a>
-      </div>
-    </div>
+    <div class="field"><label>Location</label><select id="ev-location-select" onchange="toggleCustomLocation(this.value)"><option value="">-- Pick a spot --</option><option value="Adams Morgan, DC">Adams Morgan, DC</option><option value="U Street, DC">U Street, DC</option><option value="Georgetown, DC">Georgetown, DC</option><option value="Capitol Hill, DC">Capitol Hill, DC</option><option value="Navy Yard, DC">Navy Yard, DC</option><option value="H Street NE, DC">H Street NE, DC</option><option value="Dupont Circle, DC">Dupont Circle, DC</option><option value="Shaw, DC">Shaw, DC</option><option value="Bethesda, MD">Bethesda, MD</option><option value="Silver Spring, MD">Silver Spring, MD</option><option value="College Park, MD">College Park, MD</option><option value="Rockville, MD">Rockville, MD</option><option value="Tysons, VA">Tysons, VA</option><option value="Arlington, VA">Arlington, VA</option><option value="Alexandria, VA">Alexandria, VA</option><option value="Reston, VA">Reston, VA</option><option value="custom">✏️ Type my own...</option></select></div>
+    <div class="field" id="ev-custom-wrap" style="display:none;"><label>Custom Location</label><input id="ev-location-custom" type="text" placeholder="Enter venue or address"/></div>
+    <div class="field"><label>Description (optional)</label><textarea id="ev-desc" placeholder="Tell people what to expect..." style="min-height:72px;"></textarea></div>
+    <div id="ev-err" class="form-err"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="ev-btn" onclick="submitEvent()">Create Event</button>
   </div>
-</footer>
+</div>
+
+<div id="toast"></div>
 
 <script>
-// ── SCROLL REVEAL
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
+const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
+const ADMIN_EMAILS = ['ejohnysingh@gmail.com'];
+
+const {createClient} = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+let me = null, myProfile = null, isAdmin = false, allMembers = [];
+
+// ── THEME (must be first so UI is correct before anything loads)
+let theme = localStorage.getItem('dmv-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+function updateThemeBtn() {
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = theme === 'dark' ? '☀️' : '🌙';
+  const m = document.getElementById('theme-meta');
+  if (m) m.content = theme === 'dark' ? '#0f1117' : '#f5f7ff';
+}
+updateThemeBtn();
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('dmv-theme', theme);
+  updateThemeBtn();
+}
+
+// ── INIT
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error')) {
+    openModal('login');
+    setTimeout(() => showErr('l-err', 'Confirmation link expired. Please sign in.'), 200);
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
+  // Handle email confirmation hash
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  const { data: { session } } = await db.auth.getSession();
+  if (session?.user) {
+    me = session.user;
+    await setupUser();
+    showApp();
+  }
+
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      me = session.user;
+      await setupUser();
+      showApp();
+      toast('Welcome to DMV Friends! 🎉');
+    } else if (event === 'SIGNED_OUT') {
+      me = null; myProfile = null; isAdmin = false;
+      document.getElementById('page-app').classList.remove('active');
+      document.getElementById('page-landing').classList.add('active');
     }
   });
-}, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// ── SCROLLED NAV
-window.addEventListener('scroll', () => {
-  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
-});
+  loadLandingStats();
+  registerSW();
 
-// ── MARQUEE
-const neighborhoods = ['Adams Morgan','Dupont Circle','H Street NE','Silver Spring','Bethesda','Arlington','Alexandria','Georgetown','U Street','Tysons','Rockville','Capitol Hill','Navy Yard','Shaw','NoMa','Reston','Clarendon','Foggy Bottom'];
-const track = document.getElementById('marquee-track');
-const doubled = [...neighborhoods, ...neighborhoods];
-doubled.forEach((n, i) => {
-  const span = document.createElement('span');
-  span.className = 'marquee-item ' + (i % 3 === 0 ? 'hi' : 'lo');
-  span.textContent = n;
-  track.appendChild(span);
-  if (i < doubled.length - 1) {
-    const dot = document.createElement('span');
-    dot.className = 'marquee-dot';
-    dot.textContent = '·';
-    track.appendChild(dot);
+  // Auto-open modal if coming from landing page
+  const hash = window.location.hash;
+  if (hash === '#signup') {
+    openModal('signup');
+    window.history.replaceState({}, '', window.location.pathname);
+  } else if (hash === '#login') {
+    openModal('login');
+    window.history.replaceState({}, '', window.location.pathname);
   }
+}
+
+// ── SERVICE WORKER
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('[DMV] SW registered'))
+      .catch(e => console.log('[DMV] SW skipped:', e.message));
+  }
+}
+
+// ── PWA INSTALL BANNER
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+window.addEventListener('appinstalled', () => {
+  hideInstallBanner();
+  toast('DMV Friends installed! 🎉');
+});
+function showInstallBanner() {
+  if (document.getElementById('install-banner')) return;
+  const b = document.createElement('div');
+  b.id = 'install-banner';
+  b.style.cssText = 'position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0.875rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.2);white-space:nowrap;';
+  b.innerHTML = `<div style="font-size:1.5rem">📱</div><div><div style="font-weight:600;font-size:0.875rem;">Add to Home Screen</div><div style="font-size:0.75rem;color:var(--text2);">Install DMV Friends as an app</div></div><button onclick="doInstall()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:500;cursor:pointer;font-family:var(--font);">Install</button><button onclick="hideInstallBanner()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:0.25rem;">✕</button>`;
+  document.body.appendChild(b);
+}
+function hideInstallBanner() { document.getElementById('install-banner')?.remove(); }
+function doInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; hideInstallBanner(); });
+}
+
+// ── SETUP USER
+async function setupUser() {
+  const userEmail = (me.email || '').trim().toLowerCase();
+  isAdmin = ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail);
+
+  const { data } = await db.from('profiles').select('*').eq('id', me.id).single();
+  if (!data) {
+    const nm = me.user_metadata?.display_name || me.email.split('@')[0];
+    const loc = me.user_metadata?.location || 'DMV';
+    await db.from('profiles').insert({
+      id: me.id, display_name: nm, email: me.email,
+      location: loc, is_admin: isAdmin, created_at: new Date().toISOString()
+    });
+    myProfile = { display_name: nm, email: me.email, location: loc, is_admin: isAdmin };
+  } else {
+    myProfile = data;
+    if (data.is_admin) isAdmin = true;
+    if (isAdmin && !data.is_admin) {
+      await db.from('profiles').update({ is_admin: true }).eq('id', me.id);
+    }
+  }
+
+  const letter = (myProfile.display_name || me.email)[0].toUpperCase();
+  const nm = myProfile.display_name || me.email;
+  document.getElementById('topbar-av').textContent = letter;
+  document.getElementById('topbar-nm').textContent = nm;
+  const ca = document.getElementById('composer-av');
+  if (ca) ca.textContent = letter;
+
+  if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.removeProperty('display'));
+  }
+}
+
+// ── SHOW APP
+function showApp() {
+  document.getElementById('page-landing').classList.remove('active');
+  document.getElementById('page-app').classList.add('active');
+  closeModal();
+  loadFeed();
+  loadEvents();
+  loadMembers();
+  loadSidebarEvents();
+  if (isAdmin) { loadAdminStats(); loadAdminMembers(); loadAdminPosts(); loadAdminEvents(); }
+}
+
+// ── NAV
+function switchPanel(panel, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav-item, .sidebar-item').forEach(b => b.classList.remove('active'));
+  const tp = document.getElementById('tab-' + panel);
+  if (tp) tp.classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── AUTH MODAL
+function openModal(f) {
+  document.getElementById('auth-overlay').classList.add('open');
+  switchForm(f);
+}
+function closeModal() { document.getElementById('auth-overlay').classList.remove('open'); }
+function switchForm(f) {
+  document.getElementById('f-signup').style.display = f === 'signup' ? 'block' : 'none';
+  document.getElementById('f-login').style.display  = f === 'login'  ? 'block' : 'none';
+}
+document.getElementById('auth-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-overlay')) closeModal();
 });
 
-// ── WHY CARDS
-const whyCards = [
-  { icon:'🤝', color:'#C4502A', title:'Real people, not profiles', desc:'Every member is a verified real person in the DMV. We moderate actively so the quality stays high and the vibe stays right.' },
-  { icon:'📅', color:'#4A6B5B', title:'Events worth leaving the couch for', desc:'Rooftop parties, brunches, hikes, networking nights — curated events across DC, MD, and VA that people actually attend.' },
-  { icon:'🏙️', color:'#E8A832', title:'Built for the DMV, not everywhere', desc:"This isn't a generic social app. Every feature, event, and conversation is rooted in the culture of our specific region." },
-  { icon:'🔒', color:'#1A1714', title:'Safe, moderated, 21+', desc:'Age-verified members, active moderation, and a zero-tolerance policy for disrespect. You\'re in good company here.' },
-  { icon:'💬', color:'#C4502A', title:'Community that actually talks', desc:'A live feed where members share what\'s happening, ask for local recs, and connect before they even meet IRL.' },
-  { icon:'📱', color:'#4A6B5B', title:'App experience, no download needed', desc:'Add to your home screen for a full native-app feel. Works instantly on iPhone and Android — no App Store needed.' },
-];
-const whyGrid = document.getElementById('why-grid');
-whyCards.forEach((card, i) => {
-  const el = document.createElement('div');
-  el.className = 'why-card reveal';
-  el.setAttribute('data-delay', (i % 3) + 1);
-  el.innerHTML = `
-    <div class="why-icon" style="background:${card.color}18">${card.icon}</div>
-    <div class="why-title">${card.title}</div>
-    <div class="why-desc">${card.desc}</div>
-    <div class="why-bg-icon">${card.icon}</div>`;
-  whyGrid.appendChild(el);
-  observer.observe(el);
-});
+// ── SIGNUP
+async function doSignup() {
+  const name  = document.getElementById('s-name').value.trim();
+  const loc   = document.getElementById('s-loc').value.trim();
+  const email = document.getElementById('s-email').value.trim();
+  const pass  = document.getElementById('s-pass').value;
+  const age   = document.getElementById('s-age').checked;
+  const btn   = document.getElementById('s-btn');
+  clearMsg('s-err'); clearMsg('s-ok');
 
-// ── EVENTS
-const eventsData = [
-  { cat:'🍹 Social', date:'Fri, Jun 20 · 7:00 PM', name:'Georgetown Rooftop Happy Hour', loc:'Georgetown, DC', going:43, img:'https://images.unsplash.com/photo-1555952517-2e8e729e0b44?w=500&q=80&fit=crop' },
-  { cat:'🍳 Brunch', date:'Sun, Jun 22 · 11:00 AM', name:'DMV Sunday Brunch Collective', loc:'U Street, DC', going:28, img:'https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=500&q=80&fit=crop' },
-  { cat:'💼 Networking', date:'Wed, Jun 25 · 6:30 PM', name:'Young Professionals Mixer — Bethesda', loc:'Bethesda, MD', going:55, img:'https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=500&q=80&fit=crop' },
-];
-const evGrid = document.getElementById('events-grid');
-eventsData.forEach((ev, i) => {
-  const el = document.createElement('div');
-  el.className = 'event-card reveal';
-  el.setAttribute('data-delay', i + 1);
-  el.innerHTML = `
-    <div class="ec-img">
-      <img src="${ev.img}" alt="${ev.name}" loading="lazy"/>
-      <span class="ec-cat">${ev.cat}</span>
-    </div>
-    <div class="ec-body">
-      <div class="ec-date">${ev.date}</div>
-      <div class="ec-name">${ev.name}</div>
-      <div class="ec-loc">📍 ${ev.loc}</div>
-      <div class="ec-footer">
-        <div class="ec-going"><strong>${ev.going}</strong> going</div>
-        <button class="rsvp-btn" onclick="this.textContent='✓ Going!';this.classList.add('going')">RSVP Free</button>
+  if (!name)         return showErr('s-err', 'Display name is required.');
+  if (!email||!pass) return showErr('s-err', 'Email and password are required.');
+  if (pass.length<8) return showErr('s-err', 'Password must be at least 8 characters.');
+  if (!age)          return showErr('s-err', 'You must confirm you are 21+.');
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  const { data, error } = await db.auth.signUp({
+    email, password: pass,
+    options: { data: { display_name: name, location: loc || 'DMV' } }
+  });
+  if (error) { showErr('s-err', error.message); btn.disabled = false; btn.textContent = 'Join DMV Friends'; return; }
+  if (data.user) {
+    await db.from('profiles').upsert({
+      id: data.user.id, display_name: name, email,
+      location: loc || 'DMV', is_admin: false, created_at: new Date().toISOString()
+    });
+  }
+  showOk('s-ok', '✅ Check your email to confirm your account, then sign in.');
+  btn.disabled = false; btn.textContent = 'Join DMV Friends';
+}
+
+// ── LOGIN
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const btn   = document.getElementById('l-btn');
+  clearMsg('l-err');
+  if (!email||!pass) return showErr('l-err', 'Email and password are required.');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) { showErr('l-err', error.message); btn.disabled = false; btn.textContent = 'Sign In'; }
+}
+
+async function doSignOut() { await db.auth.signOut(); }
+
+// ── FEED
+async function loadFeed() {
+  const list = document.getElementById('feed-list');
+  list.innerHTML = loading();
+  // Fetch posts and profiles separately (avoids foreign key join requirement)
+  const { data: posts, error } = await db
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) { list.innerHTML = empty('⚠️', 'Error loading feed: ' + error.message); return; }
+  if (!posts?.length) { list.innerHTML = empty('✍️', 'No posts yet — be the first!'); return; }
+
+  // Get unique user IDs and fetch their profiles
+  const userIds = [...new Set(posts.map(p => p.user_id).filter(Boolean))];
+  const { data: profilesData } = await db
+    .from('profiles')
+    .select('id, display_name, location')
+    .in('id', userIds);
+
+  // Build a lookup map
+  const profileMap = {};
+  (profilesData || []).forEach(p => { profileMap[p.id] = p; });
+
+  list.innerHTML = posts.map(p => {
+    const profile = profileMap[p.user_id] || {};
+    const av = (profile.display_name || 'U')[0].toUpperCase();
+    const owned = me && p.user_id === me.id;
+    return `<div class="post-card" id="post-${p.id}">
+      <div class="post-header">
+        <div class="post-av">${av}</div>
+        <div class="post-meta">
+          <div class="post-author">${esc(profile.display_name || 'Member')}</div>
+          <div class="post-time">${timeAgo(p.created_at)} · ${esc(profile.location || 'DMV')}</div>
+        </div>
+        ${owned || isAdmin ? `<button class="btn-icon" onclick="deletePost('${p.id}')" style="font-size:0.8rem;padding:0.3rem 0.5rem;margin-left:auto;">🗑</button>` : ''}
+      </div>
+      <div class="post-body">${esc(p.body)}</div>
+      <div class="post-actions">
+        <button class="post-act" onclick="likePost('${p.id}', this)">❤️ ${p.likes || 0}</button>
+        <button class="post-act">💬 Reply</button>
+        <button class="post-act">↗ Share</button>
       </div>
     </div>`;
-  evGrid.appendChild(el);
-  observer.observe(el);
-});
+  }).join('');
+}
 
-// ── TESTIMONIALS
-const tData = [
-  { quote:"I moved from Atlanta knowing nobody. Two weeks in, I had brunch plans, a hiking group, and actually felt like I lived here. This community is the real deal.", name:'Aisha T.', role:'Marketing Manager · Adams Morgan, DC', av:'A', bg:'#DBEAFE', c:'#1D4ED8' },
-  { quote:"I was skeptical — another app promising community. DMV Friends actually delivered. Six events in, I've made genuine friends. Not connections. Friends.", name:'Marcus L.', role:'Software Engineer · Arlington, VA', av:'M', dark:true, bg:'rgba(255,255,255,0.1)', c:'#fff' },
-  { quote:"As someone who moved here from Nigeria, I was nervous. DMV Friends welcomed me immediately. The events always have the best energy.", name:'Kemi O.', role:'Healthcare Professional · Silver Spring, MD', av:'K', bg:'#D1FAE5', c:'#065F46' },
-  { quote:"Remote work made me feel invisible in DC. This community gave me a reason to leave my apartment. Best decision I've made since moving here.", name:'Jordan P.', role:'UX Designer · Capitol Hill, DC', av:'J', bg:'#FEF3C7', c:'#92400E' },
-];
-const tGrid = document.getElementById('t-grid');
-tData.forEach((t, i) => {
-  const el = document.createElement('div');
-  el.className = 't-card reveal' + (t.dark ? ' dark' : '');
-  el.setAttribute('data-delay', i + 1);
-  el.innerHTML = `
-    <div class="stars">★★★★★</div>
-    <span class="quote-mark">"</span>
-    <p class="t-quote">"${t.quote}"</p>
-    <div class="t-author">
-      <div class="t-av" style="background:${t.bg};color:${t.c}">${t.av}</div>
-      <div><div class="t-name">${t.name}</div><div class="t-role">${t.role}</div></div>
+async function submitPost() {
+  const ta  = document.getElementById('post-text');
+  const body = ta.value.trim();
+  if (!body) return toast('Write something first!');
+  if (!me)   return toast('You must be signed in.');
+  const btn = document.getElementById('post-btn');
+  btn.disabled = true; btn.textContent = 'Posting…';
+  const { error } = await db.from('posts').insert({
+    body,
+    user_id: me.id,
+    likes: 0,
+    created_at: new Date().toISOString()
+  });
+  btn.disabled = false; btn.textContent = 'Post';
+  if (!error) { ta.value = ''; toast('Posted! 🎉'); loadFeed(); }
+  else toast('Error posting: ' + error.message);
+}
+
+async function likePost(id, btn) {
+  const n = parseInt(btn.textContent.replace('❤️ ', '')) || 0;
+  const { error } = await db.from('posts').update({ likes: n + 1 }).eq('id', id);
+  if (!error) { btn.textContent = `❤️ ${n + 1}`; btn.classList.add('liked'); }
+}
+
+async function deletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  const { error } = await db.from('posts').delete().eq('id', id);
+  if (!error) { document.getElementById('post-' + id)?.remove(); toast('Post deleted.'); }
+  else toast('Error: ' + error.message);
+}
+
+// ── EVENTS
+async function loadEvents() {
+  const list = document.getElementById('events-list');
+  list.innerHTML = loading();
+  const { data, error } = await db
+    .from('events')
+    .select('*')
+    .order('event_date', { ascending: true })
+    .limit(20);
+
+  if (error) { list.innerHTML = empty('⚠️', 'Error loading events: ' + error.message); return; }
+  if (!data?.length) { list.innerHTML = empty('📅', 'No events yet — add one!'); return; }
+  list.innerHTML = data.map(ev => renderEvent(ev)).join('');
+}
+
+function renderEvent(ev) {
+  const d   = new Date(ev.event_date);
+  const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  const day = d.getDate();
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const catEmoji = { Social:'🍹', Brunch:'🍳', Networking:'💼', Party:'🎉', Sports:'⚽', Food:'🍽', Culture:'🎭', Other:'📌' };
+  const emoji = catEmoji[ev.category] || '📅';
+  return `<div class="event-card">
+    <div class="event-date">
+      <span class="event-date-mon">${mon}</span>
+      <span class="event-date-day">${day}</span>
+    </div>
+    <div class="event-info">
+      <div class="event-name">${emoji} ${esc(ev.title)}</div>
+      <div class="event-meta">📍 ${esc(ev.location || 'TBD')} · ${time}</div>
+      ${ev.description ? `<div style="font-size:0.78rem;color:var(--text2);margin-top:3px;line-height:1.4;">${esc(ev.description)}</div>` : ''}
+      <div class="event-going">👥 <strong>${ev.going || 0}</strong> going</div>
+    </div>
+    <button class="going-btn" onclick="markGoing('${ev.id}', this)">Going</button>
+  </div>`;
+}
+
+async function markGoing(id, btn) {
+  btn.disabled = true;
+  const { data } = await db.from('events').select('going').eq('id', id).single();
+  const { error } = await db.from('events').update({ going: (data?.going || 0) + 1 }).eq('id', id);
+  if (!error) { btn.textContent = '✓ Going!'; btn.classList.add('attending'); }
+  else { btn.disabled = false; toast('Error: ' + error.message); }
+}
+
+async function loadSidebarEvents() {
+  const el = document.getElementById('sidebar-events');
+  const { data } = await db.from('events').select('*').order('event_date', { ascending: true }).limit(3);
+  if (!data?.length) { el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);">No upcoming events</div>'; return; }
+  el.innerHTML = data.map(ev => {
+    const d = new Date(ev.event_date);
+    return `<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:0.82rem;font-weight:500;">${esc(ev.title)}</div>
+      <div style="font-size:0.75rem;color:var(--text2);">${d.toLocaleDateString('en-US', { month:'short', day:'numeric' })} · ${esc(ev.location || 'TBD')}</div>
     </div>`;
-  tGrid.appendChild(el);
-  observer.observe(el);
+  }).join('');
+}
+
+// ── EVENT MODAL
+function openAddEvent() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('ev-title').value = '';
+  document.getElementById('ev-date').value  = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('ev-time').value  = '19:00';
+  document.getElementById('ev-desc').value  = '';
+  document.getElementById('ev-location-select').value = '';
+  document.getElementById('ev-location-custom').value = '';
+  document.getElementById('ev-custom-wrap').style.display = 'none';
+  document.getElementById('ev-err').className = 'form-err';
+  const btn = document.getElementById('ev-btn');
+  btn.disabled = false; btn.textContent = 'Create Event';
+  document.getElementById('event-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('ev-title').focus(), 100);
+}
+
+function closeEventModal() {
+  document.getElementById('event-overlay').classList.remove('open');
+}
+
+function toggleCustomLocation(val) {
+  document.getElementById('ev-custom-wrap').style.display = val === 'custom' ? 'block' : 'none';
+}
+
+async function submitEvent() {
+  const title   = document.getElementById('ev-title').value.trim();
+  const date    = document.getElementById('ev-date').value;
+  const time    = document.getElementById('ev-time').value || '19:00';
+  const locSel  = document.getElementById('ev-location-select').value;
+  const locCust = document.getElementById('ev-location-custom').value.trim();
+  const desc    = document.getElementById('ev-desc').value.trim();
+  const errEl   = document.getElementById('ev-err');
+  const btn     = document.getElementById('ev-btn');
+
+  errEl.className = 'form-err';
+  if (!title)                          { errEl.textContent = 'Event name is required.';    errEl.className = 'form-err show'; return; }
+  if (!date)                           { errEl.textContent = 'Please pick a date.';         errEl.className = 'form-err show'; return; }
+  if (!locSel)                         { errEl.textContent = 'Please pick a location.';     errEl.className = 'form-err show'; return; }
+  if (locSel === 'custom' && !locCust) { errEl.textContent = 'Please type your location.';  errEl.className = 'form-err show'; return; }
+
+  const location   = locSel === 'custom' ? locCust : locSel;
+  const event_date = `${date}T${time}`;
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  const { error } = await db.from('events').insert({
+    title,
+    location,
+    event_date,
+    going: 0,
+    created_by: me.id,
+    created_at: new Date().toISOString()
+  });
+
+  btn.disabled = false; btn.textContent = 'Create Event';
+
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.className = 'form-err show';
+  } else {
+    closeEventModal();
+    toast('Event created! 🎉');
+    loadEvents();
+    loadSidebarEvents();
+    if (isAdmin) loadAdminEvents();
+  }
+}
+
+document.getElementById('event-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('event-overlay')) closeEventModal();
 });
 
-// ── TRUST BADGES
-const badges = [
-  { icon:'✅', title:'21+ Age Verified', desc:'Every member confirms their age at signup. Adults-only community, enforced always.' },
-  { icon:'🛡️', title:'Actively Moderated', desc:'Real admins review the community daily and remove anyone who breaks the rules.' },
-  { icon:'🚫', title:'Zero Tolerance Policy', desc:'Harassment, hate speech, and disrespect result in an immediate permanent ban.' },
-  { icon:'🔐', title:'Your Data Is Safe', desc:'We never sell or share your personal information. Privacy is a founding principle.' },
-];
-const trustGrid = document.getElementById('trust-badges');
-badges.forEach((b, i) => {
-  const el = document.createElement('div');
-  el.className = 'trust-badge reveal';
-  el.setAttribute('data-delay', i + 1);
-  el.innerHTML = `<div class="tb-icon">${b.icon}</div><div class="tb-title">${b.title}</div><div class="tb-desc">${b.desc}</div>`;
-  trustGrid.appendChild(el);
-  observer.observe(el);
-});
+// ── MEMBERS
+async function loadMembers() {
+  const grid = document.getElementById('members-grid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
+  const { data, error } = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(48);
+  if (error) { grid.innerHTML = empty('⚠️', 'Error: ' + error.message); return; }
+  allMembers = data || [];
+  const mc = document.getElementById('member-count');
+  if (mc) mc.textContent = `${allMembers.length} members`;
+  renderMembers(allMembers);
+}
+
+function filterMembers() {
+  const q = document.getElementById('member-search').value.toLowerCase();
+  renderMembers(allMembers.filter(m =>
+    (m.display_name||'').toLowerCase().includes(q) ||
+    (m.location||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderMembers(arr) {
+  const grid = document.getElementById('members-grid');
+  if (!arr.length) { grid.innerHTML = empty('👥', 'No members found.'); return; }
+  grid.innerHTML = arr.map(m => `
+    <div class="member-card">
+      <div class="member-av">${(m.display_name||'U')[0].toUpperCase()}</div>
+      <div class="member-name">${esc(m.display_name || 'Member')}</div>
+      <div class="member-loc">${esc(m.location || 'DMV')}</div>
+      ${m.is_admin ? '<span class="member-badge admin-badge">Admin</span>' : '<span class="member-badge">Member</span>'}
+    </div>`).join('');
+}
+
+// ── ADMIN
+async function loadAdminStats() {
+  const [{ count: mc }, { count: pc }, { count: ec }] = await Promise.all([
+    db.from('profiles').select('*', { count: 'exact', head: true }),
+    db.from('posts').select('*', { count: 'exact', head: true }),
+    db.from('events').select('*', { count: 'exact', head: true }),
+  ]);
+  document.getElementById('a-members').textContent = mc || 0;
+  document.getElementById('a-posts').textContent   = pc || 0;
+  document.getElementById('a-events').textContent  = ec || 0;
+}
+
+async function loadAdminMembers() {
+  const el = document.getElementById('admin-members-list');
+  el.innerHTML = loading();
+  const { data } = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!data?.length) { el.innerHTML = empty('👥', 'No members yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Name</th><th>Location</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(m => `<tr>
+      <td><strong>${esc(m.display_name||'—')}</strong><br/><span style="font-size:0.75rem;color:var(--text2);">${esc(m.email||'')}</span></td>
+      <td>${esc(m.location||'—')}</td>
+      <td>${new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'})}</td>
+      <td><span class="status-pill ${m.is_banned?'status-banned':m.is_admin?'status-active':'status-active'}">${m.is_banned?'Banned':m.is_admin?'Admin':'Active'}</span></td>
+      <td>
+        ${!m.is_admin ? `<button class="admin-act-btn red" onclick="banMember('${m.id}','${esc(m.display_name||'')}')">Ban</button>` : ''}
+        <button class="admin-act-btn red" onclick="deleteMember('${m.id}')">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadAdminPosts() {
+  const el = document.getElementById('admin-posts-list');
+  el.innerHTML = loading();
+  const { data: adminPosts } = await db.from('posts').select('*').order('created_at', { ascending: false }).limit(20);
+  const data = adminPosts;
+  if (!data?.length) { el.innerHTML = empty('📝', 'No posts yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Author</th><th>Content</th><th>Likes</th><th>When</th><th></th></tr></thead>
+    <tbody>${data.map(p => `<tr>
+      <td><strong>Member</strong></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.body)}</td>
+      <td>${p.likes||0}</td>
+      <td>${timeAgo(p.created_at)}</td>
+      <td><button class="admin-act-btn red" onclick="adminDeletePost('${p.id}')">Delete</button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadAdminEvents() {
+  const el = document.getElementById('admin-events-list');
+  el.innerHTML = loading();
+  const { data } = await db.from('events').select('*').order('event_date', { ascending: true }).limit(20);
+  if (!data?.length) { el.innerHTML = empty('📅', 'No events yet.'); return; }
+  el.innerHTML = `<table class="admin-table">
+    <thead><tr><th>Event</th><th>Location</th><th>Date</th><th>Going</th><th></th></tr></thead>
+    <tbody>${data.map(ev => `<tr>
+      <td><strong>${esc(ev.title)}</strong></td>
+      <td>${esc(ev.location||'—')}</td>
+      <td>${new Date(ev.event_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+      <td>${ev.going||0}</td>
+      <td><button class="admin-act-btn red" onclick="adminDeleteEvent('${ev.id}')">Delete</button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function banMember(id, name) {
+  if (!confirm(`Ban ${name}?`)) return;
+  const { error } = await db.from('profiles').update({ is_banned: true }).eq('id', id);
+  if (!error) { toast(name + ' has been banned.'); loadAdminMembers(); }
+  else toast('Error: ' + error.message);
+}
+
+async function deleteMember(id) {
+  if (!confirm('Permanently delete this member?')) return;
+  const { error } = await db.from('profiles').delete().eq('id', id);
+  if (!error) { toast('Member deleted.'); loadAdminMembers(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+async function adminDeletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  const { error } = await db.from('posts').delete().eq('id', id);
+  if (!error) { toast('Post deleted.'); loadAdminPosts(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+async function adminDeleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  const { error } = await db.from('events').delete().eq('id', id);
+  if (!error) { toast('Event deleted.'); loadAdminEvents(); loadAdminStats(); }
+  else toast('Error: ' + error.message);
+}
+
+// ── LANDING STATS
+async function loadLandingStats() {
+  const [{ count: mc }, { count: ec }] = await Promise.all([
+    db.from('profiles').select('*', { count: 'exact', head: true }),
+    db.from('events').select('*', { count: 'exact', head: true }),
+  ]);
+  const sm = document.getElementById('stat-members');
+  const se = document.getElementById('stat-events');
+  if (sm) sm.textContent = mc || '0';
+  if (se) se.textContent = ec || '0';
+}
+
+// ── UTILS
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function timeAgo(iso) {
+  const d = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (d < 60)    return 'just now';
+  if (d < 3600)  return `${Math.floor(d/60)}m ago`;
+  if (d < 86400) return `${Math.floor(d/3600)}h ago`;
+  return `${Math.floor(d/86400)}d ago`;
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+function showErr(id, msg)  { const el = document.getElementById(id); el.textContent = msg; el.className = 'form-err show'; }
+function showOk(id, msg)   { const el = document.getElementById(id); el.textContent = msg; el.className = 'form-ok show'; }
+function clearMsg(id)      { const el = document.getElementById(id); el.className = 'form-err'; el.textContent = ''; }
+function loading()         { return '<div class="loading"><div class="spinner"></div></div>'; }
+function empty(icon, text) { return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`; }
+
+init();
 </script>
 </body>
 </html>
