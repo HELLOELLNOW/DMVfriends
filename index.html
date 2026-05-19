@@ -322,7 +322,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <a class="topbar-brand" href="#" onclick="return false;"><div class="topbar-brand-mark">D</div><span class="topbar-brand-name">DMV Friends</span></a>
+      <a class="topbar-brand" href="#" onclick="switchPanel('feed', document.querySelector('[onclick*=\'feed\']'));return false;"><div class="topbar-brand-mark">D</div><span class="topbar-brand-name">DMV Friends</span></a>
       <nav class="topbar-nav">
         <button class="topbar-nav-item active" onclick="switchPanel('feed',this)">Feed</button>
         <button class="topbar-nav-item" onclick="switchPanel('events',this)">Events</button>
@@ -693,24 +693,37 @@ async function doSignOut() { await db.auth.signOut(); }
 async function loadFeed() {
   const list = document.getElementById('feed-list');
   list.innerHTML = loading();
-  const { data, error } = await db
+  // Fetch posts and profiles separately (avoids foreign key join requirement)
+  const { data: posts, error } = await db
     .from('posts')
-    .select('*, profiles(display_name, location)')
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(30);
 
   if (error) { list.innerHTML = empty('⚠️', 'Error loading feed: ' + error.message); return; }
-  if (!data?.length) { list.innerHTML = empty('✍️', 'No posts yet — be the first!'); return; }
+  if (!posts?.length) { list.innerHTML = empty('✍️', 'No posts yet — be the first!'); return; }
 
-  list.innerHTML = data.map(p => {
-    const av = (p.profiles?.display_name || 'U')[0].toUpperCase();
+  // Get unique user IDs and fetch their profiles
+  const userIds = [...new Set(posts.map(p => p.user_id).filter(Boolean))];
+  const { data: profilesData } = await db
+    .from('profiles')
+    .select('id, display_name, location')
+    .in('id', userIds);
+
+  // Build a lookup map
+  const profileMap = {};
+  (profilesData || []).forEach(p => { profileMap[p.id] = p; });
+
+  list.innerHTML = posts.map(p => {
+    const profile = profileMap[p.user_id] || {};
+    const av = (profile.display_name || 'U')[0].toUpperCase();
     const owned = me && p.user_id === me.id;
     return `<div class="post-card" id="post-${p.id}">
       <div class="post-header">
         <div class="post-av">${av}</div>
         <div class="post-meta">
-          <div class="post-author">${esc(p.profiles?.display_name || 'Member')}</div>
-          <div class="post-time">${timeAgo(p.created_at)} · ${esc(p.profiles?.location || 'DMV')}</div>
+          <div class="post-author">${esc(profile.display_name || 'Member')}</div>
+          <div class="post-time">${timeAgo(p.created_at)} · ${esc(profile.location || 'DMV')}</div>
         </div>
         ${owned || isAdmin ? `<button class="btn-icon" onclick="deletePost('${p.id}')" style="font-size:0.8rem;padding:0.3rem 0.5rem;margin-left:auto;">🗑</button>` : ''}
       </div>
@@ -953,12 +966,13 @@ async function loadAdminMembers() {
 async function loadAdminPosts() {
   const el = document.getElementById('admin-posts-list');
   el.innerHTML = loading();
-  const { data } = await db.from('posts').select('*, profiles(display_name)').order('created_at', { ascending: false }).limit(20);
+  const { data: adminPosts } = await db.from('posts').select('*').order('created_at', { ascending: false }).limit(20);
+  const data = adminPosts;
   if (!data?.length) { el.innerHTML = empty('📝', 'No posts yet.'); return; }
   el.innerHTML = `<table class="admin-table">
     <thead><tr><th>Author</th><th>Content</th><th>Likes</th><th>When</th><th></th></tr></thead>
     <tbody>${data.map(p => `<tr>
-      <td><strong>${esc(p.profiles?.display_name||'—')}</strong></td>
+      <td><strong>Member</strong></td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.body)}</td>
       <td>${p.likes||0}</td>
       <td>${timeAgo(p.created_at)}</td>
