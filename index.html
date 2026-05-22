@@ -253,6 +253,112 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 @media(max-width:1100px){.app-body{grid-template-columns:220px 1fr;}.sidebar-right{display:none;}}
 @media(max-width:768px){.hero{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:2.5rem 1.5rem;}.app-body{grid-template-columns:1fr;}.sidebar-left{display:none;}.main-content{padding:1rem;}.topbar-nav{display:none;}}
+
+/* ── MOBILE FIXES ── */
+@media (max-width: 768px) {
+
+  /* Landing nav */
+  #land-nav { padding: 0 1rem; }
+  #land-nav .nav-links { display: none; }
+
+  /* Hero - stack vertically */
+  #page-landing > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  /* Landing hero left padding */
+  #page-landing .hero-left,
+  #page-landing > div > div:first-child {
+    padding: 2.5rem 1.25rem 2rem !important;
+  }
+
+  /* Hide hero right images on mobile */
+  #page-landing > div > div:last-child[style*="position:relative"] {
+    display: none !important;
+  }
+
+  /* Stats bar - 2x2 grid */
+  #page-landing div[style*="grid-template-columns:repeat(4,1fr)"] {
+    grid-template-columns: repeat(2,1fr) !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Why join - single column */
+  #page-landing div[style*="grid-template-columns:repeat(3,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Testimonials - single column */
+  #page-landing div[style*="grid-template-columns:repeat(3,1fr)"]:last-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* CTA buttons stack */
+  #page-landing div[style*="display:flex;gap:12px;flex-wrap:wrap"] {
+    flex-direction: column !important;
+  }
+
+  /* App topbar on mobile */
+  .topbar { padding: 0 1rem; }
+  .topbar-nav { display: none; }
+  .user-chip-name { display: none; }
+
+  /* App sidebar hidden on mobile */
+  .sidebar-left, .sidebar-right { display: none !important; }
+  .app-body { grid-template-columns: 1fr !important; }
+  .main-content { padding: 1rem !important; }
+
+  /* Mobile bottom nav */
+  .mobile-nav {
+    display: flex !important;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+    justify-content: space-around;
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 0.4rem 1rem; border-radius: 8px;
+    font-size: 0.65rem; font-weight: 600; color: var(--text2);
+    cursor: pointer; border: none; background: transparent;
+    font-family: var(--font); transition: all 0.18s;
+  }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active { color: var(--accent); }
+
+  /* Add padding to main content for mobile nav */
+  .main-content { padding-bottom: 80px !important; }
+
+  /* Feed composer on mobile */
+  .composer-top { gap: 8px; }
+  .composer-av { width: 32px; height: 32px; font-size: 0.75rem; }
+
+  /* Event card on mobile */
+  .event-card { flex-direction: column; }
+  .going-btn { width: 100%; margin-top: 0.5rem; }
+
+  /* Members grid - 2 columns on mobile */
+  .members-grid { grid-template-columns: repeat(2,1fr) !important; }
+
+  /* Admin stats - wrap */
+  .admin-stats { grid-template-columns: repeat(2,1fr) !important; }
+
+  /* Admin table scroll */
+  .admin-section { overflow-x: auto; }
+  .admin-table { min-width: 500px; }
+
+  /* Post cards */
+  .post-card { padding: 1rem; }
+
+  /* Hero headline size */
+  h1[style*="font-size:clamp"] { font-size: clamp(2rem,8vw,3rem) !important; }
+}
+
+/* Mobile nav hidden on desktop */
+.mobile-nav { display: none; }
+
 </style>
 </head>
 <body>
@@ -261,7 +367,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div id="page-landing" class="page active">
 
 <!-- ══ LANDING NAV ══ -->
-<nav id="land-nav" style="position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:64px;transition:all 0.3s ease;">
+<nav id="land-nav" style="position:sticky;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:64px;transition:all 0.3s ease;background:rgba(250,248,244,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(26,23,20,0.08);">
   <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
     <div style="width:36px;height:36px;background:#C4502A;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-size:1.1rem;color:#fff;font-weight:700;">D</div>
     <span style="font-weight:700;font-size:0.95rem;color:#1A1714;letter-spacing:-0.01em;">DMV Friends</span>
@@ -273,7 +379,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </nav>
 
 <!-- ══ HERO ══ -->
-<div style="min-height:100vh;background:#FAF8F4;display:grid;grid-template-columns:1fr 1fr;padding-top:64px;overflow:hidden;">
+<div style="min-height:calc(100vh - 64px);background:#FAF8F4;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;">
   <!-- Left -->
   <div style="display:flex;flex-direction:column;justify-content:center;padding:4rem 3rem 4rem 5rem;">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.75rem;">
@@ -593,12 +699,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- MOBILE BOTTOM NAV (hidden until logged in) -->
+<div class="mobile-nav" id="mobile-nav" style="display:none;">
+  <button class="mobile-nav-item active" onclick="switchPanel('feed',this);setMobileNav(this)">
+    <span>🏠</span><span>Feed</span>
+  </button>
+  <button class="mobile-nav-item" onclick="switchPanel('events',this);setMobileNav(this)">
+    <span>📅</span><span>Events</span>
+  </button>
+  <button class="mobile-nav-item" onclick="switchPanel('members',this);setMobileNav(this)">
+    <span>👥</span><span>Members</span>
+  </button>
+  <button class="mobile-nav-item admin-only" onclick="switchPanel('admin',this);setMobileNav(this)" style="display:none;">
+    <span>⚡</span><span>Admin</span>
+  </button>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://zbiawpqzlysbuwrutaly.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_C5zZe17UxwnzAorXfuitAw_RJKi3Q8l';
-const ADMIN_EMAILS = ['ejohnysingh@gmail.com'];
+const ADMIN_EMAILS = ['ejohnysingh@gmail.com', 'dmvfriends007@gmail.com'];
 
 const {createClient} = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -653,6 +775,7 @@ async function init() {
       me = null; myProfile = null; isAdmin = false;
       document.getElementById('page-app').classList.remove('active');
       document.getElementById('page-landing').classList.add('active');
+      document.getElementById('mobile-nav').style.display = 'none';
     }
   });
 
@@ -743,6 +866,7 @@ async function setupUser() {
 function showApp() {
   document.getElementById('page-landing').classList.remove('active');
   document.getElementById('page-app').classList.add('active');
+  document.getElementById('mobile-nav').style.display = '';
   closeModal();
   loadFeed();
   loadEvents();
@@ -886,9 +1010,20 @@ async function submitPost() {
 }
 
 async function likePost(id, btn) {
+  // Prevent multiple likes - track in localStorage
+  const likedKey = 'dmv_liked_' + id;
+  if (localStorage.getItem(likedKey)) {
+    toast('You already liked this post ❤️');
+    return;
+  }
   const n = parseInt(btn.textContent.replace('❤️ ', '')) || 0;
   const { error } = await db.from('posts').update({ likes: n + 1 }).eq('id', id);
-  if (!error) { btn.textContent = `❤️ ${n + 1}`; btn.classList.add('liked'); }
+  if (!error) {
+    btn.textContent = `❤️ ${n + 1}`;
+    btn.classList.add('liked');
+    btn.disabled = true;
+    localStorage.setItem(likedKey, '1');
+  }
 }
 
 async function deletePost(id) {
@@ -1058,7 +1193,7 @@ function renderMembers(arr) {
       <div class="member-av">${(m.display_name||'U')[0].toUpperCase()}</div>
       <div class="member-name">${esc(m.display_name || 'Member')}</div>
       <div class="member-loc">${esc(m.location || 'DMV')}</div>
-      ${m.is_admin ? '<span class="member-badge admin-badge">Admin</span>' : '<span class="member-badge">Member</span>'}
+      <span class="member-badge">Member</span>
     </div>`).join('');
 }
 
@@ -1185,6 +1320,11 @@ function showOk(id, msg)   { const el = document.getElementById(id); el.textCont
 function clearMsg(id)      { const el = document.getElementById(id); el.className = 'form-err'; el.textContent = ''; }
 function loading()         { return '<div class="loading"><div class="spinner"></div></div>'; }
 function empty(icon, text) { return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`; }
+
+function setMobileNav(el) {
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
 
 init();
 </script>
