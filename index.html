@@ -535,10 +535,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div id="f-login" style="display:none;">
       <div class="modal-logo"><div class="modal-logo-mark">D</div><span class="modal-title">Welcome back</span></div>
       <div class="field"><label>Email</label><input id="l-email" type="email" placeholder="you@example.com"/></div>
-      <div class="field"><label>Password</label><input id="l-pass" type="password" placeholder="Your password"/></div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <label style="margin-bottom:0;">Password</label>
+          <a onclick="switchForm('forgot')" style="font-size:0.78rem;color:var(--accent);cursor:pointer;font-weight:500;">Forgot password?</a>
+        </div>
+        <input id="l-pass" type="password" placeholder="Your password"/>
+      </div>
       <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="l-btn" onclick="doLogin()">Sign In</button>
       <div class="form-err" id="l-err"></div>
       <div class="auth-switch">New here? <a onclick="switchForm('signup')">Create account</a></div>
+    </div>
+
+    <!-- RESET PASSWORD (shown after clicking email link) -->
+    <div id="f-reset" style="display:none;">
+      <div class="modal-logo"><div class="modal-logo-mark">🔐</div><span class="modal-title">Set new password</span></div>
+      <p style="font-size:0.875rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6;">Choose a strong new password for your account.</p>
+      <div class="field"><label>New Password</label><input id="rp-pass" type="password" placeholder="Min 8 characters"/></div>
+      <div class="field"><label>Confirm Password</label><input id="rp-pass2" type="password" placeholder="Repeat your new password"/></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="rp-btn" onclick="doResetPassword()">Update Password</button>
+      <div class="form-err" id="rp-err"></div>
+      <div class="form-ok" id="rp-ok"></div>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div id="f-forgot" style="display:none;">
+      <div class="modal-logo"><div class="modal-logo-mark">🔑</div><span class="modal-title">Reset your password</span></div>
+      <p style="font-size:0.875rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6;">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="field"><label>Email</label><input id="fp-email" type="email" placeholder="you@example.com"/></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.25rem;" id="fp-btn" onclick="doForgotPassword()">Send Reset Link</button>
+      <div class="form-err" id="fp-err"></div>
+      <div class="form-ok" id="fp-ok"></div>
+      <div class="auth-switch"><a onclick="switchForm('login')" style="display:inline-flex;align-items:center;gap:4px;">← Back to sign in</a></div>
     </div>
   </div>
 </div>
@@ -766,6 +794,11 @@ async function init() {
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      // User clicked reset link in email — open the new password form
+      openModal('reset');
+      return;
+    }
     if (event === 'SIGNED_IN' && session?.user) {
       me = session.user;
       await setupUser();
@@ -893,6 +926,15 @@ function closeModal() { document.getElementById('auth-overlay').classList.remove
 function switchForm(f) {
   document.getElementById('f-signup').style.display = f === 'signup' ? 'block' : 'none';
   document.getElementById('f-login').style.display  = f === 'login'  ? 'block' : 'none';
+  document.getElementById('f-forgot').style.display = f === 'forgot' ? 'block' : 'none';
+  const rp = document.getElementById('f-reset');
+  if (rp) rp.style.display = f === 'reset' ? 'block' : 'none';
+  // Clear forgot fields when switching
+  if (f === 'forgot') {
+    document.getElementById('fp-email').value = '';
+    document.getElementById('fp-err').className = 'form-err';
+    document.getElementById('fp-ok').className = 'form-ok';
+  }
 }
 document.getElementById('auth-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('auth-overlay')) closeModal();
@@ -942,6 +984,67 @@ async function doLogin() {
 }
 
 async function doSignOut() { await db.auth.signOut(); }
+
+async function doResetPassword() {
+  const pass  = document.getElementById('rp-pass').value;
+  const pass2 = document.getElementById('rp-pass2').value;
+  const btn   = document.getElementById('rp-btn');
+  const errEl = document.getElementById('rp-err');
+  const okEl  = document.getElementById('rp-ok');
+
+  errEl.className = 'form-err';
+  okEl.className  = 'form-ok';
+
+  if (!pass || pass.length < 8) return showErr('rp-err', 'Password must be at least 8 characters.');
+  if (pass !== pass2)           return showErr('rp-err', 'Passwords do not match.');
+
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+
+  const { error } = await db.auth.updateUser({ password: pass });
+
+  btn.disabled = false;
+  btn.textContent = 'Update Password';
+
+  if (error) {
+    showErr('rp-err', error.message);
+  } else {
+    okEl.textContent = '✅ Password updated! Signing you in…';
+    okEl.className = 'form-ok show';
+    setTimeout(() => { closeModal(); showApp(); }, 2000);
+  }
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('fp-email').value.trim();
+  const btn   = document.getElementById('fp-btn');
+  const errEl = document.getElementById('fp-err');
+  const okEl  = document.getElementById('fp-ok');
+
+  errEl.className = 'form-err';
+  okEl.className  = 'form-ok';
+
+  if (!email) return showErr('fp-err', 'Please enter your email address.');
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/index.html#reset-password',
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Send Reset Link';
+
+  if (error) {
+    showErr('fp-err', error.message);
+  } else {
+    okEl.textContent = '✅ Reset link sent! Check your email inbox (and spam folder).';
+    okEl.className = 'form-ok show';
+    // Auto switch back to login after 4 seconds
+    setTimeout(() => switchForm('login'), 4000);
+  }
+}
 
 // ── FEED
 async function loadFeed() {
