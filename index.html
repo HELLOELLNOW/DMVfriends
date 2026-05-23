@@ -1064,7 +1064,7 @@ async function loadFeed() {
   const userIds = [...new Set(posts.map(p => p.user_id).filter(Boolean))];
   const { data: profilesData } = await db
     .from('profiles')
-    .select('id, display_name, location')
+    .select('id, display_name, location, is_admin')
     .in('id', userIds);
 
   // Build a lookup map
@@ -1272,7 +1272,7 @@ document.getElementById('event-overlay').addEventListener('click', e => {
 async function loadMembers() {
   const grid = document.getElementById('members-grid');
   grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>';
-  const { data, error } = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(48);
+  const { data, error } = await db.from('profiles').select('*').eq('is_admin', false).order('created_at', { ascending: false }).limit(48);
   if (error) { grid.innerHTML = empty('⚠️', 'Error: ' + error.message); return; }
   allMembers = data || [];
   const mc = document.getElementById('member-count');
@@ -1303,7 +1303,7 @@ function renderMembers(arr) {
 // ── ADMIN
 async function loadAdminStats() {
   const [{ count: mc }, { count: pc }, { count: ec }] = await Promise.all([
-    db.from('profiles').select('*', { count: 'exact', head: true }),
+    db.from('profiles').select('*', { count: 'exact', head: true }).eq('is_admin', false),
     db.from('posts').select('*', { count: 'exact', head: true }),
     db.from('events').select('*', { count: 'exact', head: true }),
   ]);
